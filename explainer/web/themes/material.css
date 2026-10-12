@@ -1,0 +1,12 @@
+/* material: Google Material 3. Roboto Flex type, tonal containers, large rounded shapes. */
+/* @font-link: https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400..800&display=swap */
+:root{
+  --blue:#0B57D0; --red:#B3261E; --yellow:#F9AB00; --green:#146C2E;
+  --blue-ink:#0842A0; --red-ink:#8C1D18; --yellow-ink:#6E4E00; --green-ink:#0A5223;
+  --blue-tint:#D3E3FD; --red-tint:#F9DEDC; --yellow-tint:#FFEFC9; --green-tint:#C4EED0;
+  --f:"Roboto Flex", "Roboto", "Inter", Arial, sans-serif;
+  --f-display:"Roboto Flex", "Roboto", "Inter", Arial, sans-serif;
+  --r-xl:28px; --r-lg:24px; --r-md:20px; --r-sm:8px;
+  --shadow-card:none;
+  --s-panel:#F0F4F9;
+}

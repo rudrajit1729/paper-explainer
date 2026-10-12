@@ -1,0 +1,115 @@
+<title>My Paper</title>
+<!-- @engine:head -->
+<style>
+/* Starter project. Every color, font and corner comes from theme tokens, so `--theme` restyles it. */
+.s1{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:30px}
+.venue{font:600 26px var(--f);color:var(--s-muted)}
+.big{margin:0;font:700 88px/1.05 var(--f-display);letter-spacing:-.035em;max-width:1320px;text-wrap:balance}
+.big.accent{color:var(--blue)}
+
+.s2{display:flex;flex-direction:column;justify-content:center;padding-bottom:80px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:44px}
+.card{border-radius:var(--r-xl);padding:34px 36px 38px;display:flex;flex-direction:column;gap:12px}
+.k1{background:var(--blue-tint)} .k2{background:var(--green-tint)} .k3{background:var(--red-tint)}
+.num{font:700 84px/1 var(--f-display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.k1 .num{color:var(--blue-ink)} .k2 .num{color:var(--green-ink)} .k3 .num{color:var(--red-ink)}
+.cname{font:700 34px/1.1 var(--f-display);letter-spacing:-.02em}
+.cdesc{font:500 22px/1.4 var(--f);color:var(--s-fg);min-height:62px}
+.track{height:14px;border-radius:7px;background:var(--s-track);overflow:hidden;margin-top:8px}
+.fill{height:100%;border-radius:7px;transform-origin:0 50%}
+.k1 .fill{background:var(--blue)} .k2 .fill{background:var(--green)} .k3 .fill{background:var(--red)}
+
+.s3{padding:0}
+.viewport{position:absolute;left:0;top:0;width:1600px;height:752px;overflow:hidden}
+.world{position:absolute;left:0;top:0;width:1640px;height:900px;transform-origin:0 0;background:var(--figure-bg)}
+.world img{width:1640px;height:900px;display:block}
+.capbar{position:absolute;left:110px;right:110px;top:764px;height:104px;border-radius:var(--r-md);background:var(--s-panel)}
+.cap{position:absolute;inset:0 40px;display:flex;align-items:center;justify-content:center;gap:18px;font:600 31px/1.25 var(--f);letter-spacing:-.02em;text-align:center}
+
+.s4{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px}
+.line{margin:0;font:700 96px/1.08 var(--f-display);letter-spacing:-.04em;text-wrap:balance}
+.line.accent{color:var(--blue)}
+.cite{font:500 21px/1.5 var(--f);color:var(--s-muted);max-width:1100px;margin-top:40px}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <h1>My Paper</h1>
+    <p>Animated explainer</p>
+  </div>
+
+  <div class="screen" id="screen" tabindex="0" aria-label="Animated explainer. Press space to play or pause.">
+    <div class="stage" id="stage">
+
+      <!-- 1 · the question -->
+      <section class="scene s1" data-scene="-1,5" data-chip="Question">
+        <div class="venue" data-fx="rise" data-in="-1">Venue 2027</div>
+        <p class="big" data-fx="rise" data-in="-1">What question does the paper ask?</p>
+        <p class="big accent" data-fx="rise" data-in="1.2">The answer, in one sentence.</p>
+      </section>
+
+      <!-- 2 · findings -->
+      <section class="scene s2" data-scene="4.8,12.2" data-chip="Findings" data-chip-color="b">
+        <h2 class="h2" data-fx="rise" data-in="5">Three findings.</h2>
+        <div class="sub" data-fx="rise" data-in="5.2">From N participants.</div>
+        <div class="cards">
+          <div class="card k1" data-fx="rise" data-in="5.8">
+            <div class="num" data-fx="count" data-val="45" data-decimals="0" data-in="6.1" data-dur="1.1">45%</div>
+            <div class="cname">Finding one</div>
+            <div class="cdesc">What it means, in a short line.</div>
+            <div class="track"><div class="fill" style="width:45%" data-fx="bar" data-in="6.1" data-dur="1.1"></div></div>
+          </div>
+          <div class="card k2" data-fx="rise" data-in="7.4">
+            <div class="num" data-fx="count" data-val="37" data-decimals="0" data-in="7.7" data-dur="1.1">37%</div>
+            <div class="cname">Finding two</div>
+            <div class="cdesc">What it means, in a short line.</div>
+            <div class="track"><div class="fill" style="width:37%" data-fx="bar" data-in="7.7" data-dur="1.1"></div></div>
+          </div>
+          <div class="card k3" data-fx="rise" data-in="9">
+            <div class="num" data-fx="count" data-val="12" data-decimals="0" data-in="9.3" data-dur="1.1">12%</div>
+            <div class="cname">Finding three</div>
+            <div class="cdesc">What it means, in a short line.</div>
+            <div class="track"><div class="fill" style="width:12%" data-fx="bar" data-in="9.3" data-dur="1.1"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 · the figure, with a camera -->
+      <section class="scene s3" data-scene="12,22.4" data-chip="How it works" data-chip-color="y">
+        <div class="viewport"><div class="world" id="world"><img src="assets/figure.svg" alt="The paper's main figure"></div></div>
+        <div class="capbar" data-fx="rise" data-in="12.2">
+          <div class="cap" data-fx="fade" data-in="12.4" data-out="13.7">How it works.</div>
+          <div class="cap" data-fx="fade" data-in="14.0" data-out="16.7"><i class="mk b"></i>It starts with the input.</div>
+          <div class="cap" data-fx="fade" data-in="17.0" data-out="21.8"><i class="mk g"></i>The method does the work; the outcome follows.</div>
+        </div>
+      </section>
+
+      <!-- 4 · takeaway -->
+      <section class="scene s4" data-scene="22,99" data-chip="Takeaway" data-chip-color="g">
+        <p class="line accent" data-fx="rise" data-in="22.2">One line to remember.</p>
+        <div class="cite" data-fx="fade" data-in="23">“Paper title.” Authors. Venue 2027.</div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- @engine:script -->
+<script>
+(function(){
+  const { $, easeIO, lerp, onRender } = Explainer;
+  // Camera over the figure: each key is [animation time, x, y, width, height] of the region to frame (figure pixels).
+  const FULL = [0, 0, 1640, 900];
+  const CAM = [[12, ...FULL], [14, ...FULL], [15, 80, 200, 520, 500], [17, 80, 200, 520, 500], [18.5, 560, 200, 1000, 500], [20.6, 560, 200, 1000, 500], [21.8, ...FULL]];
+  const VW = 1600, VH = 752, world = $('world');
+  function camera(t){
+    let i = 0; while(i < CAM.length - 2 && t > CAM[i+1][0]) i++;
+    const A = CAM[i], B = CAM[i+1], p = easeIO((t - A[0]) / (B[0] - A[0]));
+    const sa = Math.min(VW/A[3], VH/A[4]) * .96, sb = Math.min(VW/B[3], VH/B[4]) * .96;
+    const s = Math.exp(lerp(Math.log(sa), Math.log(sb), p));
+    const cx = lerp(A[1] + A[3]/2, B[1] + B[3]/2, p), cy = lerp(A[2] + A[4]/2, B[2] + B[4]/2, p);
+    world.style.transform = `translate(${VW/2 - cx*s}px, ${VH/2 - cy*s}px) scale(${s})`;
+  }
+  onRender((at, vt) => camera(Math.max(12, Math.min(21.8, at))));
+})();
+</script>

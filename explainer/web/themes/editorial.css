@@ -1,0 +1,13 @@
+/* editorial: magazine-style. Tight black headlines, toned-down accents, quiet grey cards. */
+/* @font-link: https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400..800&display=swap */
+:root{
+  --blue:#2557D6; --red:#C2362B; --yellow:#C48A00; --green:#1E7B4A;
+  --blue-ink:#1D45AB; --red-ink:#A12C23; --yellow-ink:#7E5900; --green-ink:#17613A;
+  --blue-tint:#F3F4F6; --red-tint:#F3F4F6; --yellow-tint:#F3F4F6; --green-tint:#F3F4F6;
+  --s-fg:#0b0b0c; --s-muted:#55575c;
+  --f:"Inter Tight", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-display:"Inter Tight", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --r-xl:4px; --r-lg:4px; --r-md:4px; --r-sm:2px;
+  --shadow-card:none;
+  --s-chip:#ffffff; --s-track:#e3e4e8;
+}

@@ -1,0 +1,36 @@
+{
+ "title": "My Paper",
+ "page": "index.html",
+ "theme": "google-apple",
+ "timeline": {
+  "end": 30,
+  "events": [
+   {"at": 0.0, "line": "t1", "settle": 1.2, "lead": 0.6, "note": "title and question on screen"},
+   {"at": 1.2, "line": "t2", "entrance": 0.7, "settle": 4.3, "note": "the answer rises"},
+   {"at": 5.0, "line": "f0", "entrance": 0.8, "settle": 5.8, "note": "findings headline"},
+   {"at": 5.8, "line": "f1", "entrance": 1.4, "settle": 7.4, "note": "card 1 and its bar"},
+   {"at": 7.4, "line": "f2", "entrance": 1.4, "settle": 9.0, "note": "card 2"},
+   {"at": 9.0, "line": "f3", "entrance": 1.4, "settle": 11.3, "note": "card 3"},
+   {"at": 12.2, "line": "g1", "settle": 14.0, "note": "whole figure"},
+   {"at": 14.0, "line": "g2", "settle": 17.0, "note": "zoom to the left part"},
+   {"at": 17.0, "line": "g3", "settle": 20.6, "note": "pan across to the outcome"},
+   {"at": 22.2, "line": "k1", "entrance": 0.7, "settle": 23.0, "note": "takeaway line"},
+   {"at": 23.0, "line": "k2", "entrance": 0.9, "settle": 24.0, "note": "citation"}
+  ],
+  "holds": {"read": {"f3": 1.5}, "voice": {"f3": 1.0}},
+  "final_hold": 3.0
+ },
+ "music": {
+  "eighth": 0.35,
+  "chords": [[0, "C9"], [5, "Am9"], [12, "F7"], [17, "Gsus"], [22, "C9"]],
+  "layers": [
+   {"type": "arp", "from": 5.2, "to": 11.8, "rate": "quarter", "vel": 0.13},
+   {"type": "arp", "from": 12.4, "to": 21.5, "rate": "eighth", "vel": 0.12},
+   {"type": "arp", "from": 22.3, "to": "end", "rate": "eighth", "vel": 0.11, "pattern": [1, 2, 3, 4, 4, 3, 2, 1]}
+  ],
+  "swells": [5, 12, 22],
+  "thuds": [],
+  "end_bells": true
+ },
+ "clips": {"figure": [12.0, 21.8]}
+}

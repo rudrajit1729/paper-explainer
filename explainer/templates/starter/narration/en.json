@@ -1,0 +1,18 @@
+{
+ "lang": "en-us",
+ "voice": "af_heart",
+ "speed": 1.0,
+ "lines": {
+  "t1": "Here is the question our paper asks.",
+  "t2": "And here is the short answer, in one sentence.",
+  "f0": "We found three things.",
+  "f1": "First, the biggest finding, with its number.",
+  "f2": "Second, the next finding.",
+  "f3": "And third, the finding people will remember.",
+  "g1": "Here is how it works.",
+  "g2": "It starts with the input on the left.",
+  "g3": "Then the method does the work, and the outcome follows.",
+  "k1": "One line to remember.",
+  "k2": "Read the paper for the details."
+ }
+}

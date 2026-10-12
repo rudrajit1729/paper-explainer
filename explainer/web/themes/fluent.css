@@ -1,0 +1,11 @@
+/* fluent: a Microsoft Fluent-like look. Segoe UI where installed (Windows), Inter elsewhere; tighter corners; Microsoft's four colors. */
+:root{
+  --blue:#0078D4; --red:#D13438; --yellow:#FFB900; --green:#107C10;
+  --blue-ink:#005A9E; --red-ink:#A4262C; --yellow-ink:#8A5A00; --green-ink:#0B5A0B;
+  --blue-tint:#EFF6FC; --red-tint:#FDF3F4; --yellow-tint:#FFF8E6; --green-tint:#F1FAF1;
+  --f:"Segoe UI Variable Text", "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-display:"Segoe UI Variable Display", "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --r-xl:8px; --r-lg:8px; --r-md:8px; --r-sm:4px;
+  --shadow-card:0 1.6px 3.6px rgba(0,0,0,.13), 0 .3px .9px rgba(0,0,0,.11);
+  --s-chip:#ffffff; --s-track:#ffffff;
+}

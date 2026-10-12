@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Recorder</title>
+<style>
+@font-face{font-family:'Inter';font-weight:400;src:url('fonts/inter-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;src:url('fonts/inter-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:700;src:url('fonts/inter-latin-700-normal.woff2') format('woff2')}
+:root{
+  --bg:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --panel:#f5f5f7;
+  --blue:#4285F4; --red:#EA4335; --green:#34A853; --yellow:#FBBC04; --green-tint:#e6f4ea; --red-tint:#fce8e6; --blue-tint:#e8f0fe;
+  --f:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root{ --bg:#000; --fg:#f5f5f7; --muted:#a1a1a6; --line:#2c2c2e; --panel:#1c1c1e;
+  --green-tint:#16271c; --red-tint:#2d1a19; --blue-tint:#172235; color-scheme:dark } }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:32px 80px;display:flex;flex-direction:column;gap:18px}
+h1{margin:0;font-size:32px;letter-spacing:-.02em}
+.lede{margin:0;color:var(--muted);font-size:16px;line-height:1.5;max-width:65ch}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:0;background:var(--bg);padding-block:10px;z-index:2;border-bottom:1px solid var(--line)}
+.meter{flex:1 1 200px;height:8px;border-radius:4px;background:var(--panel);overflow:hidden;min-width:0}
+.meter i{display:block;height:100%;width:0;background:var(--green);transition:width .05s}
+.count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:600 14px var(--f);border:0;border-radius:980px;padding:8px 16px;background:var(--panel);color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+.line{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:16px 18px;border-radius:18px;background:var(--panel);outline:none}
+.line.current{box-shadow:0 0 0 2px var(--blue)}
+.line.done{background:var(--green-tint)}
+.line.rec{background:var(--red-tint)}
+.id{font:600 13px var(--f);color:var(--muted)}
+.text{font-size:19px;line-height:1.45;min-width:0}
+.acts{display:flex;gap:8px;align-items:center}
+button.b{font:600 14px var(--f);border:0;border-radius:980px;padding:8px 14px;cursor:pointer;background:var(--fg);color:var(--bg);min-width:84px}
+button.b.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1.5px var(--line);min-width:0}
+button.b.rec{background:var(--red);color:#fff}
+button:focus-visible,.line:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.dur{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:40px;text-align:right}
+.note{font-size:14px;color:var(--muted);line-height:1.5}
+.err{color:var(--red);font-weight:600}
+kbd{font:600 12px var(--f);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+@media (max-width:560px){ .line{grid-template-columns:1fr} .acts{flex-wrap:wrap} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Record your narration</h1>
+  <p class="lede">Read each line in a natural voice, in a quiet room. Recordings save into
+    <code id="where"></code> as you go. Press <kbd>Space</kbd> to start and stop the selected line,
+    <kbd>↓</kbd> <kbd>↑</kbd> to move, <kbd>P</kbd> to play it back. When every line is green, run the build command shown at the bottom.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabLines" aria-selected="true">Script lines</button>
+    <button class="tab" role="tab" id="tabRef" aria-selected="false">Voice sample for cloning</button>
+  </div>
+  <div class="bar">
+    <span class="count" id="count"></span>
+    <div class="meter" aria-hidden="true"><i id="level"></i></div>
+    <span class="count" id="mic">Microphone off</span>
+  </div>
+  <div id="list" style="display:flex;flex-direction:column;gap:10px"></div>
+  <p class="note" id="next"></p>
+</div>
+<script>
+const DATA = window.RECORDER_DATA;   // {lang, lines:[{id,text}], reference_text, build_cmd, clone_cmd, folder}
+const $ = id => document.getElementById(id);
+$('where').textContent = DATA.folder;
+let stream, ctx, analyser, rec = null, chunks = [], current = 0, mode = 'lines';
+const status = {};   // id -> seconds
+
+async function mic(){
+  if(stream) return stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:true, autoGainControl:false}});
+  }catch(e){
+    $('mic').innerHTML = '<span class="err">Microphone blocked. Allow it in the browser and reload.</span>'; throw e;
+  }
+  ctx = new AudioContext(); analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  const buf = new Float32Array(analyser.fftSize);
+  (function meter(){
+    analyser.getFloatTimeDomainData(buf);
+    let p = 0; for(const v of buf) p = Math.max(p, Math.abs(v));
+    $('level').style.width = Math.min(100, p * 140) + '%';
+    $('level').style.background = p > .9 ? 'var(--red)' : 'var(--green)';
+    requestAnimationFrame(meter);
+  })();
+  $('mic').textContent = 'Microphone on';
+  return stream;
+}
+
+function items(){
+  return mode === 'lines' ? DATA.lines : [{id:'reference', text: DATA.reference_text}];
+}
+
+function draw(){
+  const L = items(), list = $('list'); list.innerHTML = '';
+  L.forEach((l, i) => {
+    const row = document.createElement('div');
+    row.className = 'line' + (i === current ? ' current' : '') + (status[l.id] ? ' done' : '') + (rec && rec.id === l.id ? ' rec' : '');
+    row.tabIndex = 0;
+    row.innerHTML = `<span class="id">${l.id}</span><div class="text"></div>
+      <div class="acts"><span class="dur">${status[l.id] ? status[l.id].toFixed(1)+' s' : ''}</span>
+      <button class="b ghost" type="button" data-play ${status[l.id] ? '' : 'disabled'}>Play</button>
+      <button class="b ${rec && rec.id === l.id ? 'rec' : ''}" type="button" data-rec>${rec && rec.id === l.id ? 'Stop' : (status[l.id] ? 'Redo' : 'Record')}</button></div>`;
+    row.querySelector('.text').textContent = l.text;
+    row.querySelector('[data-rec]').onclick = () => { current = i; toggle(); };
+    row.querySelector('[data-play]').onclick = () => play(l.id);
+    row.onfocus = () => { if(current !== i){ current = i; draw(); } };
+    list.appendChild(row);
+  });
+  const done = L.filter(l => status[l.id]).length;
+  $('count').textContent = `${done} of ${L.length} recorded`;
+  $('next').innerHTML = mode === 'lines'
+    ? (done === L.length ? `All lines recorded. Build with: <code>${DATA.build_cmd}</code>` : 'Tip: leave half a second of silence before and after each line; it is trimmed automatically.')
+    : 'Read the passage at your normal pace for 20 to 30 seconds. Then build in your cloned voice with: <code>' + DATA.clone_cmd + '</code>';
+}
+
+async function toggle(){
+  const l = items()[current];
+  if(rec){ rec.recorder.stop(); return; }
+  await mic();
+  chunks = [];
+  const recorder = new MediaRecorder(stream);
+  rec = { id: l.id, recorder };
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = async () => {
+    const blob = new Blob(chunks, {type: recorder.mimeType});
+    const r = await fetch(`save?id=${encodeURIComponent(l.id)}`, {method:'POST', body: blob});
+    const j = await r.json();
+    rec = null;
+    if(j.ok){ status[l.id] = j.seconds; if(current < items().length - 1 && mode === 'lines') current++; }
+    else alert(j.error || 'Could not save');
+    draw();
+  };
+  recorder.start(); draw();
+}
+
+function play(id){ new Audio(`audio?id=${encodeURIComponent(id)}&t=${Date.now()}`).play(); }
+
+document.addEventListener('keydown', e => {
+  if(e.target.tagName === 'BUTTON' && e.code === 'Space') return;
+  if(e.code === 'Space'){ e.preventDefault(); toggle(); }
+  else if(e.key === 'ArrowDown' && !rec){ e.preventDefault(); current = Math.min(items().length - 1, current + 1); draw(); }
+  else if(e.key === 'ArrowUp' && !rec){ e.preventDefault(); current = Math.max(0, current - 1); draw(); }
+  else if(e.key.toLowerCase() === 'p'){ const id = items()[current].id; if(status[id]) play(id); }
+});
+function setMode(m){
+  if(rec) return; mode = m; current = 0;
+  $('tabLines').setAttribute('aria-selected', m === 'lines'); $('tabRef').setAttribute('aria-selected', m === 'ref'); draw();
+}
+$('tabLines').onclick = () => setMode('lines');
+$('tabRef').onclick = () => setMode('ref');
+
+fetch('status').then(r => r.json()).then(s => { Object.assign(status, s); draw(); });
+draw();
+</script>
+</body>
+</html>

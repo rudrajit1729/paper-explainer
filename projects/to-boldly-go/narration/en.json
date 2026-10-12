@@ -1,0 +1,24 @@
+{
+ "lang": "en-us",
+ "voice": "af_heart",
+ "speed": 1.0,
+ "lines": {
+  "c1": "Most studies ask how much faster AI makes developers.",
+  "c2": "We asked something different. What does AI let them do that they couldn't do before?",
+  "c3": "We put that question to three hundred and thirty-one developers at Microsoft.",
+  "c4": "Their answers fell into three zones.",
+  "c5": "Faster. The same work, done faster.",
+  "c6": "Further. Work that was once out of reach, or too costly to justify.",
+  "c7": "And Afresh. New kinds of work, built around AI.",
+  "c8": "Underneath all three is a loop. Developers and AI are joint learners.",
+  "c9": "Developers learn with AI's scaffolding. And AI learns from what developers codify: specs, memory, and success criteria.",
+  "c10": "With each turn of the loop, what both can do moves outward.",
+  "c11": "They meet at the skill-judgment nexus. AI can supply skill faster than it can judge its own work, so developers bridge the gap.",
+  "c12": "But when skill outpaces judgment, the loop stalls. Over-dependence, a growing verification burden, and an erosion of skill and identity.",
+  "c13": "To keep it turning, we offer a two-way scaffolding playbook.",
+  "c14": "Practices for before, during, and after the work, flowing from developer to AI, and from AI to developer.",
+  "c15": "Grow your judgment.",
+  "c16": "Codify it.",
+  "c17": "Keep the loop turning."
+ }
+}

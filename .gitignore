@@ -1,0 +1,7 @@
+__pycache__/
+*.egg-info/
+.venv/
+projects/*/build/
+projects/*/output/*_preview.mp4
+projects/*/recordings/
+.DS_Store

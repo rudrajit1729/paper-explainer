@@ -1,0 +1,11 @@
+/* academic: a conference-talk look. Serif display type, sans body, muted inks, small corners. */
+/* @font-link: https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400..700&family=Source+Sans+3:wght@400..700&display=swap */
+:root{
+  --blue:#1F4E79; --red:#9B2335; --yellow:#B7791F; --green:#2C7A6B;
+  --blue-ink:#1F4E79; --red-ink:#9B2335; --yellow-ink:#7C5212; --green-ink:#225F53;
+  --blue-tint:#EEF3F8; --red-tint:#F8EEF0; --yellow-tint:#FAF4EA; --green-tint:#EDF5F3;
+  --f:"Source Sans 3", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --r-xl:10px; --r-lg:10px; --r-md:8px; --r-sm:4px;
+  --shadow-card:none;
+}

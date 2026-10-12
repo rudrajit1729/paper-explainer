@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper-explainer"
+version = "0.1.0"
+description = "Turn a research paper into an animated explainer video, with an AI voice, your own voice, or no voice."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "pillow>=10",
+  "soundfile>=0.12",
+  "playwright>=1.40",
+  "kokoro-onnx>=0.4.9",
+]
+
+[project.optional-dependencies]
+clone = ["chatterbox-tts>=0.1.2"]
+
+[project.scripts]
+explainer = "explainer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["explainer*"]
+
+[tool.setuptools.package-data]
+explainer = ["web/*.css", "web/*.js", "web/*.html", "web/themes/*.css", "web/fonts/*", "templates/**/*"]

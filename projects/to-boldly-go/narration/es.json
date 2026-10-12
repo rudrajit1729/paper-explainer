@@ -1,0 +1,24 @@
+{
+ "lang": "es",
+ "voice": "ef_dora",
+ "speed": 1.0,
+ "lines": {
+  "c1": "La mayoría de los estudios preguntan cuánto más rápido trabajan los desarrolladores con IA.",
+  "c2": "Nosotros preguntamos algo distinto. ¿Qué les permite hacer la IA que antes no podían hacer?",
+  "c3": "Hicimos esa pregunta a trescientos treinta y un desarrolladores de Microsoft.",
+  "c4": "Sus respuestas se agrupan en tres zonas.",
+  "c5": "Más rápido. El mismo trabajo, hecho más rápido.",
+  "c6": "Más lejos. Trabajo que antes estaba fuera de alcance, o era demasiado costoso de justificar.",
+  "c7": "Y desde cero. Nuevos tipos de trabajo, construidos en torno a la IA.",
+  "c8": "Debajo de las tres hay un ciclo. Los desarrolladores y la IA aprenden juntos.",
+  "c9": "Los desarrolladores aprenden con el andamiaje de la IA. Y la IA aprende de lo que los desarrolladores codifican: especificaciones, memoria y criterios de éxito.",
+  "c10": "Con cada vuelta del ciclo, lo que ambos pueden hacer se expande.",
+  "c11": "Se encuentran en el nexo entre habilidad y juicio. La IA aporta habilidad más rápido de lo que puede juzgar su propio trabajo, así que los desarrolladores cierran esa brecha.",
+  "c12": "Pero cuando la habilidad supera al juicio, el ciclo se detiene. Dependencia excesiva, una carga de verificación creciente y la erosión de la habilidad y la identidad.",
+  "c13": "Para mantenerlo en marcha, proponemos una guía de andamiaje en dos direcciones.",
+  "c14": "Prácticas para antes, durante y después del trabajo, del desarrollador a la IA, y de la IA al desarrollador.",
+  "c15": "Desarrolla tu criterio.",
+  "c16": "Codifícalo.",
+  "c17": "Mantén el ciclo en marcha."
+ }
+}

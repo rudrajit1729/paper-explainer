@@ -1,0 +1,57 @@
+/* Explainer engine styles: page chrome, the 1600x900 stage, scenes, controls, and the shared design tokens.
+   Projects add their own <style> after this and may override any token. */
+:root{
+  /* page around the player (follows the viewer's light/dark theme) */
+  --pg-bg:#ffffff; --pg-fg:#1d1d1f; --pg-muted:#6e6e73; --pg-line:#d2d2d7; --pg-btn:#1d1d1f; --pg-btn-fg:#ffffff; --pg-chip:#f5f5f7;
+  /* the stage itself (always light: it is what gets exported) */
+  --s-bg:#ffffff; --s-fg:#1d1d1f; --s-muted:#5f6368; --s-soft:#80868b; --s-line:rgba(60,64,67,.12); --s-panel:#f5f5f7;
+  /* Google's four colors, plus darker inks for text on white and pale tints for cards */
+  --blue:#4285F4; --red:#EA4335; --yellow:#FBBC04; --green:#34A853;
+  --blue-ink:#1967d2; --red-ink:#c5221f; --yellow-ink:#7a5d00; --green-ink:#137333;
+  --blue-tint:#e8f0fe; --red-tint:#fce8e6; --yellow-tint:#fef7e0; --green-tint:#e6f4ea;
+  /* Apple-style type: the system font on Apple devices, Inter everywhere else and in exports */
+  --f:-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-display:var(--f);
+  /* surfaces and shape */
+  --s-chip:rgba(255,255,255,.92); --s-track:rgba(255,255,255,.95); --s-line-strong:#bdc1c6;
+  --r-xl:34px; --r-lg:28px; --r-md:26px; --r-sm:12px;
+  --shadow-card:0 18px 50px rgba(60,64,67,.09);
+  --figure-bg:transparent;   /* a light panel behind figures, for dark themes */
+  --loop:var(--yellow);      /* the moving dot on a loop */
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --pg-bg:#000000; --pg-fg:#f5f5f7; --pg-muted:#a1a1a6; --pg-line:#424245; --pg-btn:#f5f5f7; --pg-btn-fg:#1d1d1f; --pg-chip:#1d1d1f; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --pg-bg:#000000; --pg-fg:#f5f5f7; --pg-muted:#a1a1a6; --pg-line:#424245; --pg-btn:#f5f5f7; --pg-btn-fg:#1d1d1f; --pg-chip:#1d1d1f; color-scheme:dark }
+
+body{background:var(--pg-bg);color:var(--pg-fg);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:28px 40px;display:flex;flex-direction:column;gap:16px}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.head h1{margin:0;font-size:clamp(19px,2.4vw,26px);font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+.head p{margin:0;font-size:14px;color:var(--pg-muted)}
+
+.screen{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;border-radius:18px;overflow:hidden;background:var(--s-bg);outline:none;box-shadow:0 0 0 1px var(--pg-line)}
+.screen:focus-visible{box-shadow:0 0 0 3px var(--blue)}
+.screen:fullscreen{border-radius:0;aspect-ratio:auto;width:100vw;height:100vh;box-shadow:none}
+.stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;background:var(--s-bg);color:var(--s-fg);font-family:var(--f);overflow:hidden;-webkit-font-smoothing:antialiased}
+.scene{position:absolute;inset:0;padding:90px 110px}
+
+/* controls (built by engine.js) */
+.controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn{font:600 15px var(--f);background:var(--pg-btn);color:var(--pg-btn-fg);border:0;border-radius:980px;padding:9px 20px;cursor:pointer;min-width:86px}
+.btn.ghost{background:var(--pg-chip);color:var(--pg-fg);min-width:0}
+.btn:focus-visible,.chip:focus-visible,.scrub:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.scrub{flex:1 1 220px;min-width:0;accent-color:var(--blue)}
+.time{font:500 14px var(--f);color:var(--pg-muted);font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 14px var(--f);background:var(--pg-chip);color:var(--pg-muted);border:0;border-radius:980px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.chip i{width:16px;height:5px;border-radius:3px;display:inline-block}
+.chip[aria-current="true"]{color:var(--pg-fg);box-shadow:inset 0 0 0 1.5px var(--pg-fg)}
+
+/* color markers: short pills (no round dots) */
+.mk{display:inline-block;width:24px;height:7px;border-radius:4px;flex:none}
+.b{background:var(--blue)} .r{background:var(--red)} .y{background:var(--yellow)} .g{background:var(--green)}
+
+/* shared type styles for scenes */
+.h2{margin:0;font:700 74px/1.05 var(--f-display);letter-spacing:-.035em;text-wrap:balance}
+.sub{font:500 27px/1.35 var(--f);color:var(--s-muted);margin-top:14px}

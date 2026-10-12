@@ -1,0 +1,10 @@
+/* night: a dark keynote stage. Figures sit on a light panel so their dark text stays readable. */
+:root{
+  --s-bg:#0d0f12; --s-fg:#f2f3f5; --s-muted:#a7adb6; --s-soft:#8a9099; --s-line:rgba(255,255,255,.14); --s-line-strong:#3c4250;
+  --s-panel:#1a1d22; --s-chip:rgba(255,255,255,.08); --s-track:rgba(255,255,255,.14);
+  --blue:#8AB4F8; --red:#F28B82; --yellow:#FDD663; --green:#81C995;
+  --blue-ink:#8AB4F8; --red-ink:#F28B82; --yellow-ink:#FDD663; --green-ink:#81C995;
+  --blue-tint:#172235; --red-tint:#2d1a19; --yellow-tint:#2c2615; --green-tint:#16271c;
+  --shadow-card:none;
+  --figure-bg:#ffffff;
+}
