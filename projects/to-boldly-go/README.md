@@ -3,7 +3,7 @@
 The explainer for *"To Boldly Go Where No One Has Gone Before": What Has AI Let Developers Unlock?*
 by R. Choudhuri, J. L. Butler, C. Bird, C. Badea, B. Houck, A. Sarma.
 
-- `output/To_Boldly_Go_voiceover.mp4` is the final version: Chris Bird's narrated cut.
+- `output/To_Boldly_Go_voiceover.mp4` is the example output: the narrated cut.
 - `narration/en.json` holds an earlier version of the English script. Paste the final script there
   (same line ids) so a rebuild reproduces the shipped video.
 - `narration/es.json` is a Spanish narration to show the language support (machine-drafted; have a
