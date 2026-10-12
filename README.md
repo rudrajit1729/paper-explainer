@@ -8,7 +8,7 @@ slide can be read, and exports a 1080p MP4 with music and narration.
 
 The example in `projects/to-boldly-go/` is the explainer for *"To Boldly Go Where No One Has Gone
 Before": What Has AI Let Developers Unlock?* (Choudhuri, Butler, Bird, Badea, Houck, Sarma).
-**Example output: `projects/to-boldly-go/output/To_Boldly_Go_voiceover.mp4`, the narrated cut.**
+**Example output: [watch the narrated cut](https://rudrajit1729.github.io/paper-explainer/)** (`projects/to-boldly-go/output/To_Boldly_Go_voiceover.mp4`).
 
 ## The five choices
 
