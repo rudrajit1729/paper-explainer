@@ -100,7 +100,8 @@ def ai_voice(project: Project, lang: str, voice: str | None = None, speed: float
         text = n["lines"].get(cid, "").strip()
         if not text:
             clips[cid] = np.zeros(int(0.1 * SR)); continue
-        a, sr = k.create(text, voice=voice, speed=speed, lang=code)
+        # narration "voices" maps a line id to its own voice (a second character); others use the default
+        a, sr = k.create(text, voice=n.get("voices", {}).get(cid, voice), speed=speed, lang=code)
         clips[cid] = _resample(np.asarray(a, dtype=np.float64), sr)
         print(f"  {cid}: {text[:60]}", flush=True)
     return _save_all(project, lang, clips)

@@ -1,0 +1,873 @@
+<title>What Should I Do?</title>
+<!-- @engine:head -->
+<style>
+/* "What Should I Do?" v13. Script: script-v13.md (v13.1). Cold open, Alex's take one, not alone, the question, the study,
+   take two with the guidelines, then the guidelines for teams and agents. Characters: assets/cast.js.
+   Times are written against the narration clock E (line starts, from project.json). */
+.scene{pointer-events:none;padding:0}
+.layer{position:absolute;left:0;top:0;width:1600px;height:900px;overflow:hidden}
+</style>
+
+<div class="wrap">
+  <div class="head"><h1>What Should I Do?</h1><p>Guidelines for responsibly integrating AI in software engineering</p></div>
+  <div class="screen" id="screen" tabindex="0" aria-label="Animated explainer. Press space to play or pause.">
+    <div class="stage" id="stage">
+      <section class="scene" data-scene="-1,999" data-chip="Film">
+        <svg id="office" class="layer"></svg>
+        <svg id="sky" class="layer"></svg>
+        <svg id="over" class="layer"></svg>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="assets/humaaans.js"></script>
+<script src="assets/cast.js"></script>
+<!-- @engine:script -->
+<script>
+(function(){
+  const { clamp, easeOut, onRender } = Explainer;
+  const { el, shade, lerp, backOut, LOOKS, STAND, person, agent, crowd, blinkAt, toUpper, typingWrist, springPose } = Cast;
+  const FONT = 'Inter, system-ui, sans-serif', MONO = 'Menlo, ui-monospace, monospace';
+  const $ = id => document.getElementById(id);
+  const k01 = (t, a, d) => clamp((t - a) / d);
+  const eio = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  const ease = (t, a, d) => eio((t - a) / d);
+  const pop = (t, a, d = .5) => Math.max(0, backOut((t - a) / d));
+  const tf = (g, x, y, s = 1, r = 0) => g.setAttribute('transform', `translate(${x} ${y}) rotate(${r}) scale(${s})`);
+  const op = (g, v) => g.setAttribute('opacity', typeof v === 'number' ? Math.max(0, Math.min(1, v)) : (v ? 1 : 0));
+  const win = (t, a, b) => t >= a && t < b;
+  const fadeWin = (t, a, b, d = .3) => win(t, a, b + d) ? ease(t, a, d) * (1 - k01(t, b, d)) : 0;
+  function txt(p, x, y, s, size, w = 600, fill = '#1d2433', anchor = 'start', font = FONT){
+    const t = el('text', { x, y, 'font-size': size, 'font-weight': w, fill, 'font-family': font, 'text-anchor': anchor }, p);
+    t.textContent = s; return t;
+  }
+  const hexmix = (a, b, k) => '#' + [1, 3, 5].map(i => Math.round(lerp(parseInt(a.slice(i, i + 2), 16), parseInt(b.slice(i, i + 2), 16), clamp(k))).toString(16).padStart(2, '0')).join('');
+  const rnd = (() => { let s = 7; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
+
+  // ---------- The narration clock: animation time each line starts (the event `at` values in project.json) ----------
+  const E = {"v1": 0.6, "v2": 6.28, "v3": 8.83, "v4": 14.43, "v5": 19.14, "v6": 23.68, "v7": 26.75, "v8": 29.13, "v9": 33.46, "v10": 36.24, "v11": 40.21, "v12": 42.24, "v13": 46.58, "v14": 48.68, "v15": 52.54, "v16": 58.14, "v17": 65.68, "v18": 73.96, "v19": 78.85, "v20": 87.69, "v21": 90.32, "v22": 95.96, "v23": 100.66, "v24": 107.12, "v25": 120.9, "v26": 124.88, "v27": 131.67, "v28": 137.99, "v29": 143.36, "v30": 151.64, "v31": 156.57, "v32": 160.7, "v33": 166.64, "v34": 175.52, "v35": 183.12};
+  const ev = (k, d = 0) => E[k] + d;
+  const FREEZE = 5.42, CUT2 = ev('v25', 2.0), SKY0 = ev('v16'), END = ev('v35');
+
+  const CATS = [
+    { id: 'DV', c: ['#4d79ad', '#35577d', '#263f5c'] }, { id: 'DP', c: ['#ad8933', '#8a6a22', '#634b16'] },
+    { id: 'QR', c: ['#bd5443', '#9c3d30', '#742b21'] }, { id: 'IO', c: ['#1a9cc4', '#0e7c9e', '#095b75'] },
+    { id: 'MW', c: ['#db7a2c', '#b65d17', '#8a4410'] }, { id: 'CC', c: ['#5a616c', '#3b3f46', '#26292e'] },
+  ];
+  const L = { alex: { ...LOOKS.aisha, top: '#f2b705' }, v0: { ...LOOKS.reviewer, top: '#4d79ad' }, v1: { ...LOOKS.allIn, top: '#bd5443' }, v2: { ...LOOKS.unsure, top: '#1a9cc4' },
+              red: { ...LOOKS.allIn, top: '#bd5443' }, green: { ...LOOKS.unsure, top: '#1a9cc4' } };
+  // exact Table II wording
+  const GUIDE = {
+    DV1: ['DV', 'USE AI to automate routine, verifiable development tasks under human oversight; DEMAND AI to produce reviewable steps and plan of action.'],
+    CC1: ['CC', 'DEMAND AI to ask for clarification instead of acting on missing or inferred context.'],
+    CC5: ['CC', 'DEMAND AI to deliver its output in atomic, self-contained pieces a human can review.'],
+    CC4: ['CC', 'DEMAND AI to back its claims with cited, verifiable evidence, and to clearly state its assumptions, reasoning, scope, and uncertainty.'],
+  };
+  const CHIPS = [['DV1', ev('v26', .5), 3.35], ['CC1', ev('v27', .4), 5.0], ['CC5', ev('v29', 1.0), 3.3], ['CC4', ev('v29', 4.4), 3.35]];
+
+  // ---------- definitions ----------
+  el('defs', {}, $('office')).innerHTML =
+    '<filter id="soft" x="-30%" y="-50%" width="160%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#141a33" flood-opacity=".22"/><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#141a33" flood-opacity=".10"/></filter>' +
+    '<filter id="amberglow" x="-20%" y="-80%" width="140%" height="260%"><feGaussianBlur stdDeviation="10"/></filter>' +
+    '<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence id="grainT" type="fractalNoise" baseFrequency=".85" numOctaves="1" seed="1"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .55 0"/></filter>' +
+    '<radialGradient id="vig" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#141a33" stop-opacity="0"/><stop offset="1" stop-color="#141a33" stop-opacity=".2"/></radialGradient>' +
+    '<radialGradient id="pool" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7b0" stop-opacity=".6"/><stop offset="1" stop-color="#ffe7b0" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd76a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd76a" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="coolglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#8ab4f8" stop-opacity=".9"/><stop offset="1" stop-color="#8ab4f8" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="screenglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#9fb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#9fb8ff" stop-opacity="0"/></radialGradient>' +
+    '<linearGradient id="nightsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1230"/><stop offset="1" stop-color="#232b63"/></linearGradient>' +
+    '<linearGradient id="uibg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#151a3d"/><stop offset="1" stop-color="#1f2654"/></linearGradient>' +
+    CATS.map(c => `<linearGradient id="g${c.id}" x1=".25" y1=".07" x2=".75" y2=".93"><stop offset="0" stop-color="${c.c[0]}"/><stop offset=".52" stop-color="${c.c[1]}"/><stop offset="1" stop-color="${c.c[2]}"/></linearGradient>`).join('');
+  function siteCard(p, id, w = 112, h = 156){
+    const g = el('g', {}, p), s = w / 112;
+    el('rect', { x: 0, y: 0, width: w, height: h, rx: 14 * s, fill: `url(#g${id})`, filter: 'url(#soft)' }, g);
+    txt(g, 12 * s, 34 * s, id, 22 * s, 700, '#fff');
+    el('rect', { x: 12 * s, y: 48 * s, width: 72 * s, height: 7 * s, rx: 3.5 * s, fill: '#fff', opacity: .6 }, g);
+    el('rect', { x: 12 * s, y: 62 * s, width: 62 * s, height: 5 * s, rx: 2.5 * s, fill: '#fff', opacity: .34 }, g);
+    el('rect', { x: 12 * s, y: 74 * s, width: 42 * s, height: 5 * s, rx: 2.5 * s, fill: '#fff', opacity: .34 }, g);
+    return g;
+  }
+  function badge(p, id, s = 1){
+    const g = el('g', {}, p), cat = GUIDE[id][0];
+    el('rect', { x: -32 * s, y: -20 * s, width: 64 * s, height: 40 * s, rx: 8 * s, fill: `url(#g${cat})`, filter: 'url(#soft)' }, g);
+    txt(g, 0, 7 * s, id, 19 * s, 700, '#fff', 'middle'); return g;
+  }
+  function avatar(p, skin, hair, top, r = 26){
+    const g = el('g', {}, p);
+    el('circle', { cx: 0, cy: 0, r, fill: top }, g);
+    el('circle', { cx: 0, cy: -r * .08, r: r * .5, fill: skin }, g);
+    el('path', { d: `M${-r * .52},${-r * .1} C${-r * .52},${-r * .7} ${r * .52},${-r * .74} ${r * .52},${-r * .14} C${r * .2},${-r * .42} ${-r * .2},${-r * .42} ${-r * .52},${-r * .1} Z`, fill: hair }, g);
+    return g;
+  }
+
+  // =====================================================================
+  // THE BUILDING: Alex's office is one cell; every other cell is a copy of one of three variant cells
+  // =====================================================================
+  const office = $('office'), odefs = office.querySelector('defs');
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#3a4070' }, office);
+  const act = el('g', {}, office);
+  const tint = el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#3b3f8f', opacity: 0, style: 'mix-blend-mode:multiply' }, office);
+  const darken = el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#0d1230', opacity: 0 }, office);
+  const navy = '#2f3676', shells = [], pools = [];
+  function shell(p, ox, wx = 130){
+    const wall = el('rect', { x: ox, y: 0, width: 1600, height: 760, fill: '#f6f2ea' }, p);
+    const w = el('g', { transform: `translate(${ox + wx} 120)` }, p);
+    const sky = el('rect', { x: 0, y: 0, width: 300, height: 250, rx: 16, fill: '#dbe8fa' }, w);
+    const sun = el('circle', { cx: 220, cy: 70, r: 28, fill: '#fde293' }, w);
+    const hills = el('path', { d: 'M0,190 C60,152 110,178 160,156 C210,134 252,160 300,144 L300,234 C300,243 293,250 284,250 L16,250 C7,250 0,243 0,234 Z', fill: '#c7e0cc' }, w);
+    el('rect', { x: 146, y: 0, width: 8, height: 250, fill: '#fff' }, w);
+    el('rect', { x: -6, y: -6, width: 312, height: 262, rx: 20, fill: 'none', stroke: '#fff', 'stroke-width': 11 }, w);
+    el('rect', { x: ox, y: 760, width: 1600, height: 100, fill: '#e9e4da' }, p);
+    el('rect', { x: ox, y: 756, width: 1600, height: 6, fill: '#ded7ca' }, p);
+    el('rect', { x: ox, y: 860, width: 1600, height: 40, fill: '#cfc6b5' }, p);
+    el('rect', { x: ox, y: 0, width: 24, height: 900, fill: '#e2d9c8' }, p);
+    shells.push({ wall, sky, sun, hills });
+  }
+  function deskBack(g){
+    el('ellipse', { cx: 880, cy: 764, rx: 460, ry: 15, fill: '#000', opacity: .07 }, g);
+    el('rect', { x: 790, y: 510, width: 14, height: 252, rx: 4, fill: shade(navy, .85) }, g);
+    el('rect', { x: 1286, y: 510, width: 14, height: 252, rx: 4, fill: shade(navy, .85) }, g);
+    el('path', { d: 'M536,402 C536,392 544,386 552,386 L566,386 C574,386 580,392 580,402 L572,588 L542,588 Z', fill: '#aeb9c4' }, g);
+    el('rect', { x: 740, y: 498, width: 580, height: 16, rx: 6, fill: '#d9c4a5' }, g);
+    el('rect', { x: 740, y: 508, width: 580, height: 8, rx: 4, fill: '#c4ad8b' }, g);
+    el('rect', { x: 800, y: 486, width: 230, height: 12, rx: 4, fill: '#dfe5ea' }, g);
+    el('rect', { x: 816, y: 488, width: 170, height: 3, rx: 1.5, fill: '#c5cfd6' }, g);
+  }
+  function deskSeat(g){
+    el('rect', { x: 520, y: 572, width: 184, height: 20, rx: 10, fill: '#c5cfd6' }, g);
+    el('rect', { x: 606, y: 590, width: 12, height: 120, fill: '#aeb9c4' }, g);
+    el('path', { d: 'M560,722 L664,722 L674,738 L550,738 Z', fill: '#aeb9c4' }, g);
+    el('circle', { cx: 556, cy: 748, r: 10, fill: navy }, g); el('circle', { cx: 668, cy: 748, r: 10, fill: navy }, g);
+  }
+  function monitor(p, x, y, id){
+    const g = el('g', {}, p);
+    el('rect', { x: x + 102, y: y + 136, width: 20, height: 26, fill: '#3a405c' }, g);
+    el('rect', { x: x + 70, y: y + 158, width: 84, height: 8, rx: 4, fill: '#3a405c' }, g);
+    el('rect', { x: x - 8, y: y - 8, width: 240, height: 142, rx: 9, fill: '#2a2f45' }, g);
+    const glow = el('ellipse', { cx: x + 112, cy: y + 63, rx: 260, ry: 170, fill: 'url(#screenglow)', opacity: 0 }, g);
+    el('clipPath', { id }, g).appendChild(el('rect', { x, y, width: 224, height: 126 }));
+    const holder = el('g', { 'clip-path': `url(#${id})` }, g);
+    const ui = el('g', { transform: `translate(${x} ${y}) scale(${224 / 1600})` }, holder);
+    el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#uibg)' }, ui);
+    return { g, ui, glow, cx: x + 112, cy: y + 63 };
+  }
+  const RX = 423, RY = 218, RS = 1.55, ZIN = 7.18;
+  function station(p, ox, mirror, look, id){
+    const T0 = mirror ? `translate(${ox + 1600} 0) scale(-1 1)` : `translate(${ox} 0)`;
+    const bk = el('g', { transform: T0 }, p); deskBack(bk);
+    const mon = monitor(p, mirror ? ox + 1600 - 1220 : ox + 996, 330, id);
+    const extra = el('g', { transform: T0 }, p);
+    const fr = el('g', { transform: T0 }, p), front = el('g', {}), who = el('g', {}, fr);
+    const per = person(who, look, 'legsSit', front);
+    deskSeat(el('g', {}, fr)); fr.appendChild(front);
+    const pool = el('ellipse', { cx: mirror ? ox + 1600 - 900 : ox + 900, cy: 470, rx: 420, ry: 300, fill: 'url(#pool)', opacity: 0, style: 'mix-blend-mode:screen' }, p);
+    pools.push(pool);
+    return { bk, extra, mon, who, per, front, ox, mirror };
+  }
+  function makePile(p, n, x){
+    const out = [];
+    for (let i = 0; i < n; i++){
+      const g = el('g', {}, p);
+      el('rect', { x: -48, y: -13, width: 96, height: 24, rx: 5, fill: '#fff', stroke: '#dfe3e8', 'stroke-width': 1.5 }, g);
+      el('rect', { x: -40, y: -6, width: 26 + (i * 7) % 12, height: 4.5, rx: 2.2, fill: '#81c995' }, g);
+      el('rect', { x: -8, y: -6, width: 12 + (i * 13) % 16, height: 4.5, rx: 2.2, fill: '#f28b82' }, g);
+      el('rect', { x: -40, y: 2, width: 54 + (i * 11) % 20, height: 3.5, rx: 1.8, fill: '#dadce0' }, g);
+      tf(g, x + ((i * 53) % 13) - 6, 486 - i * 12.5, 1, ((i * 31) % 7) - 3);
+      out.push({ g, i, x: x + ((i * 53) % 13) - 6, y: 486 - i * 12.5, r: ((i * 31) % 7) - 3 });
+    }
+    return out;
+  }
+  // a variant's screen: busy, the title, or calm
+  function miniScreen(ui){
+    const busy = el('g', {}, ui), bars = [];
+    for (let i = 0; i < 14; i++) bars.push(el('rect', { x: 100 + (i % 3) * 40, y: 0, width: 420 + ((i * 97) % 760), height: 34, rx: 17, fill: i % 4 === 1 ? '#f28b82' : i % 3 === 0 ? '#81c995' : '#4a5190' }, busy));
+    const cnt = txt(busy, 100, 170, '', 120, 700, '#fff');
+    const dark = el('g', {}, ui); el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#05070f' }, dark);
+    txt(dark, 800, 500, 'What should I do?', 150, 700, '#fff', 'middle');
+    const calm = el('g', {}, ui); el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#uibg)' }, calm);
+    [0, 1, 2, 3].forEach(i => { const x = 110 + i * 360; el('rect', { x, y: 260, width: 320, height: 380, rx: 24, fill: '#e6f4ea' }, calm);
+      el('circle', { cx: x + 160, cy: 450, r: 90, fill: '#34a853' }, calm); el('path', { d: `M${x + 115},450 L${x + 148},484 L${x + 208},416`, stroke: '#fff', 'stroke-width': 26, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, calm); });
+    return { busy, bars, cnt, dark, calm };
+  }
+  const variants = [0, 1, 2].map(v => {
+    const g = el('g', { id: 'cellV' + v }, odefs);
+    shell(g, 0);
+    const st = station(g, 0, v === 1, L['v' + v], 'mv' + v);
+    const pg = el('g', { transform: v === 1 ? 'translate(1600 0) scale(-1 1)' : '' }, g);
+    const pile = makePile(pg, 12, 1268);
+    return { g, st, pile, scr: miniScreen(st.mon.ui), T: null };
+  });
+  const bld = el('g', {}, act);
+  for (let f = -4; f <= 4; f++) for (let c = -4; c <= 4; c++){
+    if (f === 0 && (c === 0 || c === 1)) continue;
+    el('use', { href: '#cellV' + (((c * 7 + f * 5) % 3) + 3) % 3, x: c * 1600, y: -f * 900 }, bld);
+  }
+
+  // ---------- Alex's cell ----------
+  shell(act, 0, 1270);
+  const BX = 130, BY = 96, BW = 316, BH = 186, board = el('g', {}, act);
+  el('rect', { x: BX - 8, y: BY - 8, width: BW + 16, height: BH + 16, rx: 14, fill: '#2a2f45', filter: 'url(#soft)' }, board);
+  el('rect', { x: BX, y: BY, width: BW, height: BH, rx: 9, fill: '#151a3d' }, board);
+  const FLAPN = 13, flapRows = [0, 1].map(r => { const out = [];
+    for (let i = 0; i < FLAPN; i++){ const x = BX + 11 + i * 22.6, y = BY + 30 + r * 78, g = el('g', {}, board);
+      el('rect', { x, y, width: 20, height: 56, rx: 3, fill: '#0b0f26' }, g); el('rect', { x, y: y + 27, width: 20, height: 2, fill: '#151a3d' }, g);
+      out.push(txt(g, x + 10, y + 37, '', 25, 700, '#fdd663', 'middle', MONO)); }
+    return out; });
+  const boardOk = el('g', {}, board);
+  el('circle', { cx: BX + BW - 4, cy: BY + 4, r: 26, fill: '#34a853', filter: 'url(#soft)' }, boardOk);
+  el('path', { d: `M${BX + BW - 16},${BY + 4} L${BX + BW - 7},${BY + 14} L${BX + BW + 9},${BY - 6}`, stroke: '#fff', 'stroke-width': 6, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, boardOk);
+  const A = station(act, 0, false, L.alex, 'malex');
+  const alexPileG = el('g', {}, act), alexPile = makePile(alexPileG, 14, 1268);
+  const deskMug = el('g', {}, A.bk), handMug = el('g', {}, A.per.fore);
+  [deskMug, handMug].forEach(g => {
+    el('path', { d: 'M15,-26 C27,-26 27,-9 15,-9', stroke: '#fff', 'stroke-width': 5, fill: 'none' }, g);
+    el('rect', { x: -15, y: -33, width: 31, height: 33, rx: 7, fill: '#fff' }, g);
+    el('rect', { x: -15, y: -33, width: 31, height: 9, rx: 4, fill: '#ea4335', opacity: .9 }, g);
+  });
+  tf(deskMug, 790, 498);
+  const steam = el('path', { d: '', stroke: '#d6dbe3', 'stroke-width': 3.5, fill: 'none', 'stroke-linecap': 'round' }, act);
+
+  // ---------- the meeting room, the cell to Alex's right ----------
+  shell(act, 1600);
+  const MX = 2400;
+  el('ellipse', { cx: MX, cy: 764, rx: 520, ry: 16, fill: '#000', opacity: .07 }, act);
+  const tm = [false, true].map(mirror => {
+    const g = el('g', { transform: mirror ? `translate(${2 * MX} 0) scale(-1 1)` : '' }, act);
+    const ox = MX - 800;
+    el('path', { d: `M${ox + 296},402 C${ox + 296},392 ${ox + 304},386 ${ox + 312},386 L${ox + 326},386 C${ox + 334},386 ${ox + 340},392 ${ox + 340},402 L${ox + 332},588 L${ox + 302},588 Z`, fill: '#aeb9c4' }, g);
+    const per = person(g, mirror ? L.green : L.red, 'legsSit');
+    el('rect', { x: ox + 280, y: 572, width: 184, height: 20, rx: 10, fill: '#c5cfd6' }, g);
+    el('rect', { x: ox + 366, y: 590, width: 12, height: 120, fill: '#aeb9c4' }, g);
+    el('path', { d: `M${ox + 320},722 L${ox + 424},722 L${ox + 434},738 L${ox + 310},738 Z`, fill: '#aeb9c4' }, g);
+    return { g, per, x: ox + 183 };
+  });
+  el('rect', { x: MX - 240, y: 498, width: 480, height: 16, rx: 6, fill: '#d9c4a5' }, act);
+  el('rect', { x: MX - 240, y: 508, width: 480, height: 8, rx: 4, fill: '#c4ad8b' }, act);
+  el('rect', { x: MX - 7, y: 512, width: 14, height: 250, rx: 4, fill: '#283070' }, act);
+  const tableCards = ['DV1', 'CC1', 'CC4', 'CC5'].map((id, i) => { const g = el('g', {}, act), cat = GUIDE[id][0];
+    el('rect', { x: -30, y: -46, width: 60, height: 46, rx: 7, fill: `url(#g${cat})`, filter: 'url(#soft)' }, g);
+    txt(g, 0, -16, id, 18, 700, '#fff', 'middle'); return { g, x: MX - 200 + i * 110 }; });
+
+  // =====================================================================
+  // ALEX'S MONITOR (1600 x 900 UI). Content stays above y 680 so the chip lane is clear.
+  // =====================================================================
+  const AU = A.mon.ui;
+  const ws = el('g', {}, AU);
+  const wsBot = agent(ws);
+  txt(ws, 150, 76, 'Agent', 40, 700, '#e8eaed'); txt(ws, 1500, 76, 'billing-service', 30, 600, '#9aa0c8', 'end');
+  el('rect', { x: 100, y: 104, width: 1400, height: 2, fill: '#2c3470' }, ws);
+  const meRow = el('g', {}, ws);
+  el('circle', { cx: 140, cy: 160, r: 26, fill: '#f2b705' }, meRow); txt(meRow, 140, 170, 'A', 28, 700, '#1d2433', 'middle');
+  const meTxt = txt(meRow, 190, 172, '', 36, 600, '#fff');
+  function stream(p, lines, box, size, n){
+    const g = el('g', {}, p);
+    el('clipPath', { id: box.id }, g).appendChild(el('rect', { x: box.x, y: box.y, width: box.w, height: box.h, rx: 18 }));
+    el('rect', { x: box.x, y: box.y, width: box.w, height: box.h, rx: 18, fill: box.bg || '#0f1330' }, g);
+    const rg = el('g', { 'clip-path': `url(#${box.id})` }, g), rows = [];
+    for (let i = 0; i < n; i++){ const s = lines[i % lines.length];
+      rows.push(txt(rg, box.x + 40, 0, s, size, 500, s[0] === '+' ? '#81c995' : s[0] === '-' ? '#f28b82' : '#c9cdf5', 'start', MONO)); }
+    const gap = size * 1.45, LEN = n * gap;
+    return { g, set(s){ rows.forEach((r, i) => r.setAttribute('y', box.y + box.h + 30 - (((i * gap + s) % LEN) + LEN) % LEN)); } };
+  }
+  // take one: the agent races
+  const CODE = ['- import { charge } from "legacy-pay"', '+ import { Payments } from "@pay/v2"', '  export async function bill(order) {', '-   return charge(order.total)', '+   return payments.intents.create(order)', '  }', '+ export function invoice(id) {', '+   return payments.invoices.get(id)', '+ }', '- legacyRetry(3)', '+ payments.retry({ max: 3 })', '+ const fees = payments.fees(order)'];
+  const code = el('g', {}, ws), codeS = stream(code, CODE, { id: 'codeclip', x: 100, y: 250, w: 1400, h: 320 }, 30, 12);
+  const files = txt(code, 120, 230, '', 44, 700, '#fff');
+  const plus = txt(code, 1300, 230, '', 38, 700, '#81c995', 'end'), minus = txt(code, 1500, 230, '', 38, 700, '#f28b82', 'end');
+  // the dive through the files, to file 41
+  const dive = el('g', {}, AU);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#uibg)' }, dive);
+  const NUMS = [7, 16, 25, 33, 39], DIVE_T = [.7, 1.3, 1.9, 2.5, 3.1], NAMES = ['src/billing/plans.ts', 'src/payments/client.ts', 'src/billing/tax.ts', 'src/payments/webhooks.ts', 'src/payments/retry.ts'];
+  function fileCard(p, n, name){
+    const g = el('g', {}, p);
+    el('rect', { x: -560, y: -320, width: 1120, height: 640, rx: 26, fill: '#fff', filter: 'url(#soft)' }, g);
+    txt(g, -510, -240, `File ${n} of 63`, 46, 700); txt(g, 510, -240, name, 30, 500, '#5f6368', 'end', MONO);
+    el('rect', { x: -510, y: -200, width: 1020, height: 2, fill: '#e8eaed' }, g);
+    if (n !== 41) for (let i = 0; i < 7; i++) el('rect', { x: -510 + (i % 3) * 36, y: -160 + i * 56, width: 300 + ((i * 113 + n * 37) % 520), height: 22, rx: 11, fill: i % 4 === 1 ? '#fad2cf' : i % 3 === 0 ? '#ceead6' : '#e8eaed' }, g);
+    return g;
+  }
+  const diveCards = NUMS.map((n, i) => ({ g: fileCard(dive, n, NAMES[i]), t: DIVE_T[i] }));
+  const f41 = fileCard(dive, 41, 'src/billing/refunds.ts');
+  const F41 = ['export async function processRefund(refund) {', '  const policy = await payments.policy()', '  if (refund.amount > 10000) autoApprove(refund)', '  return payments.refunds.create(refund)', '}'];
+  const glowBack = el('rect', { x: -530, y: -64, width: 1060, height: 64, rx: 12, fill: '#fbbc04', opacity: 0, filter: 'url(#amberglow)' }, f41);
+  const glowBox = el('rect', { x: -526, y: -62, width: 1052, height: 60, rx: 10, fill: '#fef7e0', stroke: '#f9ab00', 'stroke-width': 4, opacity: 0 }, f41);
+  F41.forEach((s, i) => txt(f41, -500, -140 + i * 58, s, 30, i === 2 ? 700 : 500, i === 2 ? '#b06000' : '#3c4043', 'start', MONO));
+  const refunds = ['$12,400', '$18,950', '$25,000'].map((amt, i) => { const g = el('g', {}, f41), y = 190 + i * 58;
+    txt(g, -500, y, `Refund ${amt}`, 32, 700, '#1d2433'); el('rect', { x: -180, y: y - 32, width: 390, height: 44, rx: 10, fill: '#e6f4ea' }, g);
+    txt(g, 15, y - 1, 'approved automatically', 26, 700, '#188038', 'middle'); return g; });
+  // file 1, where Alex is reading. The file list on the right marks file 41 for us.
+  const file1 = el('g', {}, ws);
+  el('rect', { x: 100, y: 200, width: 1270, height: 370, rx: 18, fill: '#0f1330' }, file1);
+  const f1Title = txt(file1, 140, 262, 'File 1 of 63', 52, 700, '#fff');
+  txt(file1, 1330, 262, 'src/billing/index.ts', 28, 500, '#9aa0c8', 'end', MONO);
+  const f1Rows = [];
+  for (let i = 0; i < 12; i++) f1Rows.push(el('rect', { x: 140 + (i % 3) * 36, y: 0, width: 360 + ((i * 97) % 640), height: 20, rx: 10, fill: i % 5 === 1 ? '#f28b82' : i % 3 === 0 ? '#81c995' : '#4a5190' }, file1));
+  el('clipPath', { id: 'f1clip' }, file1).appendChild(el('rect', { x: 100, y: 290, width: 1270, height: 270 }));
+  const f1RowsG = el('g', { 'clip-path': 'url(#f1clip)' }, file1); f1Rows.forEach(r => f1RowsG.appendChild(r));
+  const tickY = i => 140 + i * 8.6;
+  el('rect', { x: 1400, y: 128, width: 100, height: 560, rx: 12, fill: '#0f1330' }, file1);
+  const ticks = []; for (let i = 0; i < 63; i++) ticks.push(el('rect', { x: 1418, y: tickY(i), width: 64, height: 4.6, rx: 2.3, fill: '#4a5190' }, file1));
+  const tick41Glow = el('rect', { x: 1404, y: tickY(40) - 10, width: 92, height: 25, rx: 8, fill: '#fbbc04', opacity: 0, filter: 'url(#amberglow)' }, file1);
+  ticks[40].setAttribute('fill', '#fbbc04'); ticks[40].setAttribute('height', 7);
+  file1.appendChild(ticks[40]);
+  // take two: plan, question, four small pull requests
+  const plan = el('g', {}, ws);
+  el('rect', { x: 100, y: 200, width: 1400, height: 370, rx: 18, fill: '#232a5c' }, plan);
+  txt(plan, 150, 258, 'Plan. Waiting for your review.', 38, 700, '#fff');
+  const planRows = ['1  Map the billing calls', '2  Swap in the payments client', '3  Update the refund flow', '4  Tests, then ship'].map((s, i) => {
+    const g = el('g', {}, plan); el('rect', { x: 160, y: 288 + i * 62, width: 32, height: 32, rx: 6, fill: 'none', stroke: '#8ab4f8', 'stroke-width': 3 }, g);
+    const t2 = txt(g, 212, 314 + i * 62, s, 34, 500, '#e8eaed'); return { g, t2 }; });
+  const strike = el('rect', { x: 248, y: 302 + 3 * 62, width: 0, height: 4, rx: 2, fill: '#f28b82' }, plan);
+  const planNew = txt(plan, 560, 314 + 3 * 62, '', 34, 700, '#fdd663');
+  const approveBox = el('rect', { x: 1180, y: 478, width: 280, height: 66, rx: 12, fill: '#4285f4' }, plan);
+  const approveTxt = txt(plan, 1320, 522, 'Approve plan', 30, 700, '#fff', 'middle');
+  const ask = el('g', {}, ws);
+  el('rect', { x: 100, y: 200, width: 1400, height: 370, rx: 18, fill: '#fff' }, ask);
+  el('rect', { x: 100, y: 200, width: 14, height: 370, rx: 7, fill: '#fbbc04' }, ask);
+  txt(ask, 160, 262, 'Before I go on:', 36, 700);
+  txt(ask, 160, 326, 'The spec doesn’t say how to handle refunds over $10,000.', 38, 600);
+  txt(ask, 160, 384, 'Approve them automatically, or hold them for review?', 36, 500, '#5f6368');
+  const askBtn = [['Approve automatically', 160, 420], ['Hold for review', 620, 340]].map(([s, x, w]) => { const g = el('g', {}, ask);
+    const r = el('rect', { x, y: 420, width: w, height: 74, rx: 12, fill: '#fff', stroke: '#4285f4', 'stroke-width': 4 }, g);
+    const t2 = txt(g, x + w / 2, 468, s, 32, 700, '#1a73e8', 'middle'); return { r, t2, cx: x + w / 2 }; });
+  const askDone = txt(ask, 160, 546, 'Refunds over $10,000: held for review. Decided by Alex.', 30, 700, '#188038');
+  const prs = el('g', {}, ws);
+  const PRS = [['Refund flow', 'Refunds over $10,000:', 'held for review (Alex)', 'spec §4, decision log'], ['Billing calls', 'Retries stay at 3,', 'as in the old system', 'legacy-pay docs'],
+               ['Payments client', 'Charges in USD only,', 'per the spec', 'spec §2'], ['Tests, rollout', 'Staged rollout,', 'per the approved plan', 'plan, step 4']];
+  const prCards = PRS.map(([title, a1, a2, src], i) => {
+    const g = el('g', {}, prs), x = 100 + i * 352;
+    el('rect', { x, y: 200, width: 328, height: 370, rx: 18, fill: '#fff' }, g);
+    txt(g, x + 24, 250, `PR ${i + 1} of 4`, 32, 700); txt(g, x + 24, 288, title, 26, 600, '#5f6368');
+    el('rect', { x: x + 20, y: 308, width: 180, height: 34, rx: 8, fill: '#fef7e0' }, g); txt(g, x + 34, 333, 'Assumptions', 22, 700, '#b06000');
+    txt(g, x + 24, 378, a1, 23, i === 0 ? 700 : 500, '#1d2433'); txt(g, x + 24, 408, a2, 23, i === 0 ? 700 : 500, '#1d2433');
+    el('rect', { x: x + 20, y: 430, width: 130, height: 34, rx: 8, fill: '#e8f0fe' }, g); txt(g, x + 34, 455, 'Sources', 22, 700, '#1a73e8');
+    txt(g, x + 24, 498, src, 23, 500, '#3c4043');
+    const done = el('g', {}, g);
+    el('rect', { x, y: 200, width: 328, height: 370, rx: 18, fill: '#34a853', opacity: .16 }, done);
+    el('rect', { x: x + 2, y: 202, width: 324, height: 366, rx: 17, fill: 'none', stroke: '#34a853', 'stroke-width': 6 }, done);
+    el('circle', { cx: x + 268, cy: 248, r: 34, fill: '#34a853' }, done);
+    el('path', { d: `M${x + 251},248 L${x + 263},261 L${x + 286},235`, stroke: '#fff', 'stroke-width': 8, fill: 'none', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, done);
+    return { g, done, x };
+  });
+  // the title, on Alex's screen too
+  const aDark = el('g', {}, AU); el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#05070f' }, aDark);
+  txt(aDark, 800, 500, 'What should I do?', 150, 700, '#fff', 'middle');
+  // prompt bar
+  el('rect', { x: 100, y: 590, width: 1400, height: 80, rx: 16, fill: '#232a5c' }, ws);
+  const promptTxt = txt(ws, 140, 642, '', 34, 500, '#e8eaed'), promptPh = txt(ws, 140, 642, 'Ask your agent', 34, 500, '#6f75ad');
+  const caret = el('rect', { width: 3, height: 40, fill: '#fbbc04' }, ws);
+  // the cold-open montage, on the same screen
+  const mont = el('g', {}, AU);
+  const mF = el('g', {}, mont), mR = el('g', {}, mont), mD = el('g', {}, mont);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#uibg)' }, mF);
+  const mBot = agent(mF);
+  txt(mF, 150, 76, 'Agent', 40, 700, '#e8eaed'); txt(mF, 1500, 76, 'checkout-service', 30, 600, '#9aa0c8', 'end');
+  txt(mF, 110, 180, 'Building the whole checkout feature', 50, 700, '#fff');
+  const CODE2 = ['+ export function checkout(cart) {', '+   const total = cart.items.reduce(sum)', '+   const tax = taxFor(cart.region)', '+   return payments.charge(total + tax)', '+ }', '+ export const shipping = rates(cart)', '+ test("checkout totals", () => {', '+   expect(checkout(c)).toBe(42)', '+ })', '+ <CheckoutButton onClick={pay} />'];
+  const mFS = stream(mF, CODE2, { id: 'mfclip', x: 100, y: 220, w: 1400, h: 400 }, 32, 12);
+  const mFcnt = txt(mF, 110, 700, '', 42, 700, '#81c995');
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#f5f6f8' }, mR);
+  el('rect', { x: 0, y: 0, width: 1600, height: 112, fill: '#fff' }, mR);
+  txt(mR, 100, 74, 'Pull request #2187', 44, 700); txt(mR, 560, 74, 'payments', 30, 500, '#5f6368');
+  el('rect', { x: 100, y: 150, width: 900, height: 620, rx: 18, fill: '#fff', filter: 'url(#soft)' }, mR);
+  for (let i = 0; i < 12; i++) el('rect', { x: 140 + (i % 3) * 36, y: 190 + i * 46, width: 300 + ((i * 97) % 460), height: 20, rx: 10, fill: i % 4 === 1 ? '#fad2cf' : i % 3 === 0 ? '#ceead6' : '#e8eaed' }, mR);
+  const mRbadge = txt(mR, 1500, 74, '', 36, 700, '#8430ce', 'end');
+  const mRc = [0, 1, 2, 3, 4].map(i => { const g = el('g', {}, mR), y = 160 + i * 122;
+    el('rect', { x: 1040, y, width: 460, height: 104, rx: 16, fill: '#fff', filter: 'url(#soft)' }, g);
+    el('rect', { x: 1062, y: y + 20, width: 130, height: 30, rx: 8, fill: '#f3e8fd' }, g); txt(g, 1127, y + 42, 'AI review', 20, 700, '#8430ce', 'middle');
+    el('rect', { x: 1062, y: y + 64, width: 330 - (i * 37) % 120, height: 14, rx: 7, fill: '#dadce0' }, g); return g; });
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#fff' }, mD);
+  txt(mD, 100, 74, 'Support inbox', 44, 700); el('rect', { x: 100, y: 106, width: 1400, height: 2, fill: '#e8eaed' }, mD);
+  for (let i = 0; i < 6; i++){ el('rect', { x: 100, y: 150 + i * 100, width: 380, height: 80, rx: 12, fill: i === 0 ? '#e8f0fe' : '#f1f3f4' }, mD);
+    el('rect', { x: 124, y: 172 + i * 100, width: 200, height: 14, rx: 7, fill: '#bdc1c6' }, mD); el('rect', { x: 124, y: 198 + i * 100, width: 290, height: 10, rx: 5, fill: '#dadce0' }, mD); }
+  el('rect', { x: 540, y: 150, width: 960, height: 620, rx: 18, fill: '#f8f9fa' }, mD);
+  el('rect', { x: 580, y: 180, width: 640, height: 60, rx: 30, fill: '#e6f4ea' }, mD);
+  el('circle', { cx: 616, cy: 210, r: 12, fill: '#34a853' }, mD); txt(mD, 642, 222, 'Draft reply to customer ready', 32, 700, '#188038');
+  const mDl = [0, 1, 2, 3, 4, 5].map(i => el('rect', { x: 590, y: 290 + i * 54, width: 0, height: 18, rx: 9, fill: '#bdc1c6' }, mD));
+  el('rect', { x: 1240, y: 660, width: 220, height: 72, rx: 14, fill: '#1a73e8' }, mD); txt(mD, 1350, 707, 'Send', 32, 700, '#fff', 'middle');
+  const CUTS = [[0, mF], [1.3, mR], [2.5, mD], [3.4, mF], [4.0, mR], [4.45, mD], [4.8, mF], [5.05, mR], [5.25, mD]];
+  const cursor = el('g', {}, AU);
+  el('path', { d: 'M0,0 L0,44 L12,34 L21,52 L28,49 L20,31 L34,31 Z', fill: '#fff', stroke: '#1d2433', 'stroke-width': 3, 'stroke-linejoin': 'round' }, cursor);
+  const uiW = (x, y) => [996 + x * .14, 330 + y * .14];
+
+  // =====================================================================
+  // THE SKY: the study (screen space)
+  // =====================================================================
+  const sky = $('sky');
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#nightsky)' }, sky);
+  const LANES = [['DP', 'Design & Planning', 7], ['DV', 'Development', 6], ['QR', 'Quality & Risk', 4], ['IO', 'Infrastructure & Ops', 5], ['MW', 'Meta-work', 7]];
+  const LX = [240, 520, 800, 1080, 1360], LIGHT = { DV: 2.5, DP: 3.3, QR: 4.5, IO: 5.6, MW: 7.7 };
+  const lanes = LANES.map(([id, name, n], i) => { const g = el('g', {}, sky);
+    const band = el('rect', { x: LX[i] - 125, y: 214, width: 250, height: 362, rx: 22, fill: '#fff', opacity: .05 }, g);
+    const head = txt(g, LX[i], 248, name, 22, 700, '#9aa0c8', 'middle'); return { g, band, head, id, i }; });
+  const skyWorld = el('g', {}, sky);
+  const COLS = 43, ROWS = 26, DX = 34, DY = 21.5, X0 = 800 - (COLS - 1) * DX / 2, Y0 = 520 - (ROWS - 1) * DY / 2;
+  const tops = ['#4d79ad', '#bd5443', '#1a9cc4', '#ad8933', '#8ab4f8', '#c58af9', '#81c995', '#6b7280', '#f2b705'];
+  const skins = ['#6b4430', '#c69c72', '#e8b996', '#8b5e3c', '#b28b67', '#4a2f22', '#d7a982'];
+  const crowdG = el('g', {}, skyWorld), people = [];
+  const newSet = new Set(); while (newSet.size < 258) newSet.add(Math.floor(rnd() * COLS * ROWS));
+  for (let i = 0; i < COLS * ROWS; i++){
+    const r = Math.floor(i / COLS), c = i % COLS, x = X0 + c * DX, y = Y0 + r * DY;
+    const g = el('g', {}, crowdG), halo = el('circle', { cx: 0, cy: 8, r: 15, fill: 'url(#glow)', opacity: 0 }, g);
+    crowd(g, tops[(i * 7 + r) % tops.length], skins[(i * 5 + c) % skins.length], '#191847');
+    people.push({ g, halo, x, y, isNew: newSet.has(i), d: Math.hypot(c - 21, (r - 13) * 1.3) + rnd() * 3 });
+  }
+  const lit = people.filter(p => !p.isNew).sort((a, b) => a.d - b.d); lit.forEach((p, k) => p.order = k / lit.length);
+  people.filter(p => p.isNew).sort((a, b) => a.d - b.d).forEach((p, k) => p.order = k / 258);
+  const crowdXf = t => { const k1 = ease(t, ev('v17', .2), 1.4), k2 = ease(t, ev('v21', 2.2), 1.8);
+    let s = lerp(1, .6, k1), cy = lerp(520, 757, k1); s = lerp(s, .68, k2); cy = lerp(cy, 742, k2);
+    const zs = Math.exp(lerp(Math.log(2.6), 0, ease(t, SKY0, 1.8))); return [cy, s * zs]; };
+  const toScreen = (p, X) => [800 + (p.x - 800) * X[1], X[0] + (p.y - 520) * X[1]];
+  const lanterns = [];
+  for (let i = 0; i < 140; i++){ const p = lit[Math.floor(rnd() * lit.length)], warm = rnd() < .5, g = el('g', {}, sky), lane = Math.floor(rnd() * 5);
+    el('circle', { cx: 0, cy: 0, r: 16, fill: warm ? 'url(#glow)' : 'url(#coolglow)', opacity: .7 }, g);
+    el('rect', { x: -9, y: -7, width: 18, height: 13, rx: 4, fill: warm ? '#fff4cf' : '#e3ecff' }, g);
+    lanterns.push({ g, p, t: ev('v17', 1.2 + (i / 140) * 4.6 + rnd() * .2), to: [LX[lane] + (rnd() - .5) * 170, 300 + rnd() * 240] }); }
+  const legend = el('g', {}, sky);
+  el('circle', { cx: 560, cy: 184, r: 11, fill: '#ffd76a' }, legend); txt(legend, 580, 193, 'Sought AI', 26, 700, '#fff4cf');
+  el('circle', { cx: 860, cy: 184, r: 11, fill: '#8ab4f8' }, legend); txt(legend, 880, 193, 'Resisted AI', 26, 700, '#e3ecff');
+  const laneCards = []; LANES.forEach(([id, , n], li) => { for (let j = 0; j < n; j++){
+    const g = siteCard(sky, id, 50, 70), x = n % 2 && j === n - 1 ? LX[li] - 25 : LX[li] + (j % 2 ? 7 : -57), y = 266 + Math.floor(j / 2) * 76;
+    laneCards.push({ g, x, y, li, k: laneCards.length }); } });
+  const ccCards = [0, 1, 2, 3, 4, 5].map(j => ({ g: siteCard(sky, 'CC', 50, 70), x: 800 - 3 * 64 + j * 64 + 7, y: 124 }));
+  const ccLabel = txt(sky, 594, 168, 'Cross-cutting', 22, 700, '#c9cdf5', 'end');
+  const tools = [[150, 170], [1450, 170], [1470, 690]].map(([x, y], i) => ({ x, y, a: agent(sky), b: agent(sky, [{ body: '#ee6e5a', hi: '#f6aea9', stem: '#c94f3e' }, { body: '#34a853', hi: '#81c995', stem: '#188038' }, { body: '#a142f4', hi: '#d7aefb', stem: '#7b1fa2' }][i]), i }));
+  const scrim = el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#0d1230', opacity: 0 }, sky);
+  const bars = [['Clearly worded', 92, '#8ab4f8', 1.5], ['Relevant to their work', 91, '#81c995', 2.1], ['Wanted to adopt them', 89, '#ffd863', 3.3]].map(([lab, v, col, dt], i) => {
+    const g = el('g', {}, sky), y = 380 + i * 118;
+    txt(g, 300, y - 18, lab, 40, 700, '#fff'); el('rect', { x: 300, y, width: 860, height: 34, rx: 8, fill: 'rgba(255,255,255,.15)' }, g);
+    const fill = el('rect', { x: 300, y, width: 0, height: 34, rx: 8, fill: col }, g); const num = txt(g, 1190, y + 31, '', 44, 700, '#fff');
+    return { g, fill, num, v, t: ev('v23', dt) };
+  });
+  const PHR = [['Refine', ' your craft.', 1.4, '#8ab4f8'], ['Delegate', ' what you can verify.', 2.8, '#81c995'], ['Demand', ' transparency and traceability.', 6.0, '#ffd863'], ['Keep', ' judgment and accountability.', 8.4, '#f6aea9']];
+  const phrases = PHR.map(([a, b, dt, col], i) => { const t2 = txt(sky, 800, 300 + i * 110, '', 64, 700, '#fff', 'middle');
+    const s1 = el('tspan', { fill: col }, t2), s2 = el('tspan', {}, t2); s1.textContent = a; s2.textContent = b; return { t2, t: ev('v24', dt), i }; });
+
+  // =====================================================================
+  // OVERLAY
+  // =====================================================================
+  const over = $('over');
+  const supers = el('g', {}, over);
+  function sup(lines, y, size, color = '#fff', w = 700, p = supers){
+    const g = el('g', {}, p), words = [];
+    lines.forEach((line, li) => { const ln = el('text', { x: 800, y: y + li * size * 1.12, 'font-size': size, 'font-weight': w, fill: color, 'font-family': FONT, 'text-anchor': 'middle', 'letter-spacing': '-1.5' }, g);
+      line.split(' ').forEach((wd, k) => { const ts = el('tspan', {}, ln); ts.textContent = (k ? ' ' : '') + wd; words.push(ts); }); });
+    return { g, words };
+  }
+  function show(S, t, a, b, times){
+    op(S.g, t >= a - .01 && t < b + .2 ? 1 - k01(t, b, .2) : 0);
+    S.words.forEach((w, k) => w.setAttribute('opacity', ease(t, times ? times[k] : a + k * .07, .3)));
+    S.g.setAttribute('transform', `translate(0 ${(1 - ease(t, a, .4)) * 16})`);
+  }
+  // lower third
+  const lower = el('g', {}, over);
+  el('rect', { x: 0, y: 0, width: 380, height: 92, rx: 18, fill: '#fff', filter: 'url(#soft)' }, lower);
+  el('rect', { x: 0, y: 0, width: 12, height: 92, rx: 6, fill: '#f2b705' }, lower);
+  txt(lower, 34, 44, 'Alex', 38, 700); txt(lower, 34, 76, 'Software developer', 24, 600, '#5f6368');
+  // the marker only the viewer sees: file 41 in Alex's file list
+  const mark = el('g', {}, over);
+  el('circle', { cx: 0, cy: 0, r: 30, fill: 'none', stroke: '#fbbc04', 'stroke-width': 5 }, mark);
+  const markRing = el('circle', { cx: 0, cy: 0, r: 30, fill: 'none', stroke: '#fbbc04', 'stroke-width': 3 }, mark);
+  el('rect', { x: -170, y: -24, width: 120, height: 48, rx: 24, fill: '#fbbc04' }, mark); txt(mark, -110, 9, 'File 41', 24, 700, '#1d2433', 'middle');
+  // review requests from the team
+  const TEAM = [['Priya', 'Checkout, 22 files', '#e8b996', '#191847', '#a142f4'], ['Jordan', 'Invoices, 17 files', '#8b5e3c', '#191847', '#1a9cc4'], ['Wei', 'Tax export, 31 files', '#d7a982', '#2b1d17', '#34a853'], ['Sofia', 'Search, 26 files', '#c69c72', '#8d4a2b', '#ea4335']];
+  const toasts = TEAM.map(([name, sub, skin, hair, top], i) => { const g = el('g', {}, over);
+    el('rect', { x: 0, y: -42, width: 410, height: 84, rx: 16, fill: '#fff', filter: 'url(#soft)' }, g);
+    tf(avatar(g, skin, hair, top, 26), 46, 0); txt(g, 88, -6, 'Review requested: Alex', 26, 700); txt(g, 88, 26, `${name} · ${sub}`, 22, 600, '#5f6368');
+    return { g, t: ev('v8', 1.9 + i * .42), y: 96 + i * 98, i }; });
+  // the speculation
+  const TAKES = ['AI will write all the code.', 'Never let AI near production.', 'Review every line yourself.', 'Agents are your new teammates.', 'Let the agent ship it.', 'AI code is a liability.', 'Just trust the tests.', 'Pair with AI on everything.'];
+  const takes = TAKES.map((s, i) => { const g = el('g', {}, over), w = 70 + s.length * 15.6;
+    el('rect', { x: -w / 2, y: -38, width: w, height: 76, rx: 20, fill: i % 2 ? '#fff' : '#fff8e1', filter: 'url(#soft)' }, g);
+    el('path', { d: 'M-12,36 L0,58 L12,36 Z', fill: i % 2 ? '#fff' : '#fff8e1' }, g);
+    txt(g, 0, 10, s, 28, 700, '#1d2433', 'middle'); return { g, i, t: ev('v12', .1 + i * .32) }; });
+  // the title, and the question
+  const TITLE = txt(over, 800, 480, 'What should I do?', 132, 700, '#fff', 'middle');
+  const TSTY = [{ f: FONT, w: 700, ls: -2, c: '#fff', it: 'normal' }, { f: FONT, w: 800, ls: 6, c: '#ffd863', it: 'normal' }, { f: 'Georgia, serif', w: 400, ls: -1, c: '#8ab4f8', it: 'italic' }, { f: MONO, w: 700, ls: -6, c: '#81c995', it: 'normal' }, { f: FONT, w: 300, ls: 2, c: '#f6aea9', it: 'normal' }];
+  const TAGS = [['New model', 330, 300], ['New agent mode', 1260, 310], ['New release', 360, 650], ['New coding assistant', 1220, 640]].map(([s, x, y], i) => { const g = el('g', {}, over), w = 60 + s.length * 17;
+    el('rect', { x: -w / 2, y: -30, width: w, height: 60, rx: 30, fill: '#1a73e8', filter: 'url(#soft)' }, g); txt(g, 0, 11, s, 30, 700, '#fff', 'middle');
+    return { g, x, y, t: ev('v14', .2 + i * .72) }; });
+  const SUP = {
+    q1: sup(['How much of my daily work', 'should I hand to AI,'], 400, 78), q2: sup(['and what must I still own?'], 600, 78, '#ffd863'),
+    study: sup(['Our study'], 110, 72),
+    nDev: sup(['860 developers'], 74, 56), atMs: sup(['at Microsoft'], 112, 28, '#c9cdf5', 600),
+    nGl: sup(['35 developer-facing guidelines'], 74, 56), glSub: sup(['29 across five kinds of work · 6 cross-cutting'], 112, 28, '#c9cdf5', 600),
+    nAll: sup(['1,118 developers'], 74, 56), cos: sup(['Microsoft · GitHub · Pfizer'], 112, 30, '#c9cdf5', 600),
+    year: sup(['One year later'], 640, 80, '#fff'),
+  };
+  // the calendar
+  const cal = el('g', {}, over);
+  el('rect', { x: -170, y: -150, width: 340, height: 300, rx: 26, fill: '#fff', filter: 'url(#soft)' }, cal);
+  el('rect', { x: -170, y: -150, width: 340, height: 74, rx: 26, fill: '#ea4335' }, cal); el('rect', { x: -170, y: -100, width: 340, height: 24, fill: '#ea4335' }, cal);
+  [-90, 90].forEach(x => el('rect', { x: x - 9, y: -176, width: 18, height: 52, rx: 9, fill: '#3c4043' }, cal));
+  const calPage = el('g', {}, cal); el('rect', { x: -150, y: -66, width: 300, height: 200, rx: 12, fill: '#f8f9fa' }, calPage);
+  const calYr = txt(calPage, 0, 62, '', 110, 800, '#1d2433', 'middle'); txt(calPage, 0, 114, 'months', 30, 700, '#5f6368', 'middle');
+  // clapperboard
+  const clap = el('g', {}, over);
+  el('rect', { x: -280, y: -110, width: 560, height: 260, rx: 18, fill: '#1d2433', filter: 'url(#soft)' }, clap);
+  el('rect', { x: -250, y: -10, width: 500, height: 2, fill: '#5f6368' }, clap); el('rect', { x: -250, y: 70, width: 500, height: 2, fill: '#5f6368' }, clap);
+  txt(clap, -250, -40, 'SCENE: BILLING', 30, 700, '#9aa0a6', 'start'); txt(clap, 0, 52, 'TAKE TWO', 76, 800, '#fff', 'middle');
+  txt(clap, -250, 118, 'ALEX', 28, 700, '#f2b705', 'start'); txt(clap, 250, 118, 'WITH THE GUIDELINES', 26, 700, '#9aa0a6', 'end');
+  const clapStick = el('g', {}, clap);
+  el('rect', { x: -280, y: -170, width: 560, height: 56, rx: 10, fill: '#1d2433' }, clapStick);
+  for (let i = 0; i < 7; i++) el('path', { d: `M${-250 + i * 80},-170 L${-210 + i * 80},-170 L${-250 + i * 80},-114 L${-290 + i * 80},-114 Z`, fill: '#fff' }, clapStick);
+  el('rect', { x: -280, y: -112, width: 560, height: 6, fill: '#1d2433' }, clap);
+  // guideline chips: a bottom lane; one at a time; they shrink into a tray of collected guidelines (top right)
+  function wrap(s, n){ const out = []; let cur = ''; s.split(' ').forEach(w => { if ((cur + ' ' + w).trim().length > n){ out.push(cur.trim()); cur = w; } else cur += ' ' + w; }); if (cur.trim()) out.push(cur.trim()); return out; }
+  let inferredSpan = null;
+  const chips = CHIPS.map(([id, t0, hold], k) => {
+    const g = el('g', {}, over), cat = GUIDE[id][0], lines = wrap(GUIDE[id][1], 62), h = 44 + lines.length * 44;
+    const panel = el('g', {}, g);
+    el('rect', { x: 0, y: 0, width: 1360, height: h, rx: 18, fill: '#fff', filter: 'url(#soft)' }, panel);
+    el('rect', { x: 16, y: 16, width: 116, height: h - 32, rx: 12, fill: `url(#g${cat})` }, panel);
+    txt(panel, 74, h / 2 + 12, id, 34, 700, '#fff', 'middle');
+    lines.forEach((ln, i) => { const t2 = txt(panel, 160, 56 + i * 44, '', 32, 600, '#1d2433');
+      ln.split(/(USE AI|DEMAND AI|inferred)/).forEach(part => { const sp = el('tspan', /^(USE AI|DEMAND AI)$/.test(part) ? { 'font-weight': 800, fill: '#1a73e8' } : {}, t2); sp.textContent = part;
+        if (part === 'inferred') inferredSpan = sp; }); });
+    const b = badge(over, id, 1.1);
+    return { g, panel, id, t: t0, hold, h, b, k };
+  });
+  const TRAY = k => [1548, 170 + k * 56];
+  // the skill: an editor that grows out of the table cards, then the real skill generator in a browser
+  const skill = el('g', {}, over);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#0f1330' }, skill);
+  const edBot = agent(skill);
+  txt(skill, 120, 98, '.claude/skills/integrating-ai-responsibly/SKILL.md', 34, 600, '#fdd663', 'start', MONO);
+  const SK = ['Before you start, write a plan and wait for review.  (DV1)', 'If anything is unclear, ask. Do not infer.  (CC1)', 'Deliver small, self-contained pieces.  (CC5)', 'State your assumptions. Cite your sources.  (CC4)'];
+  const skLines = SK.map((s, i) => txt(skill, 120, 230 + i * 84, s, 38, 500, '#e8eaed', 'start', MONO));
+  const skLoaded = txt(skill, 120, 650, 'Skill loaded.', 42, 700, '#81c995');
+  const site = el('g', {}, over);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#f5f6f8' }, site);
+  const shots = ['skill_0', 'skill_1', 'skill_2', 'skill_3', 'skill_4', 'skill_5', 'skill_6', 'skill_ready'].map(n => el('image', { href: `assets/site/${n}.png`, x: 0, y: 0, width: 1600, height: 900, opacity: 0 }, site));
+  const TOG = [446, 536, 627, 718, 808, 899];
+  const siteCur = el('g', {}, site);
+  el('path', { d: 'M0,0 L0,40 L11,31 L19,48 L26,45 L18,28 L31,28 Z', fill: '#1d2433', stroke: '#fff', 'stroke-width': 3, 'stroke-linejoin': 'round' }, siteCur);
+  // the end card
+  const endG = el('g', {}, over);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#fbf8f2' }, endG);
+  const endFan = CATS.map((c, i) => ({ g: siteCard(endG, c.id, 84, 117), i }));
+  txt(endG, 800, 400, '“What Should I Do?”', 54, 700, '#1a73e8', 'middle');
+  txt(endG, 800, 458, 'Guidelines for Responsibly Integrating AI in Software Engineering', 38, 700, '#1d2433', 'middle');
+  txt(endG, 800, 516, 'Rudrajit Choudhuri, Fatima A. Moussaoui, Carmen Badea, Christian Bird,', 26, 500, '#3c4043', 'middle');
+  txt(endG, 800, 552, 'Jenna L. Butler, Brian Houck, Margaret Burnett, Anita Sarma', 26, 500, '#3c4043', 'middle');
+  const urlCard = el('g', {}, endG);
+  el('rect', { x: -390, y: -44, width: 780, height: 88, rx: 18, fill: '#1a73e8' }, urlCard); txt(urlCard, 0, 15, 'aka.ms/ai-where-it-matters', 44, 700, '#fff', 'middle');
+  txt(endG, 800, 770, 'From developers in the trenches, to developers in the trenches.', 26, 600, '#5f6368', 'middle');
+  txt(endG, 800, 866, 'Illustrations built from Humaaans by Pablo Stanley.', 16, 500, '#9aa0a6', 'middle');
+  const flash = el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: '#fff', opacity: 0 }, over);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, fill: 'url(#vig)' }, over);
+  el('rect', { x: 0, y: 0, width: 1600, height: 900, filter: 'url(#grain)', opacity: .05 }, over);
+
+  // =====================================================================
+  // ACTING
+  // =====================================================================
+  function typist(seed, ranges, speed = 1, enters = []){
+    const KEYS = []; let n = 0, hand = 0;
+    const r = () => { const x = Math.sin(++n * 12.9898 + seed) * 43758.5453; return x - Math.floor(x); };
+    ranges.forEach(([a, b]) => { let t = a + .1; while (t < b - .15){ const burst = 4 + Math.floor(r() * 7);
+      for (let i = 0; i < burst && t < b - .15; i++){ t += (.1 + r() * .11) / speed; hand = r() < .72 ? 1 - hand : hand; KEYS.push({ t, hand, key: (r() - .5) * 2 }); }
+      t += (.22 + r() * .3) / speed; } });
+    enters.forEach(t => KEYS.push({ t, hand: 0, key: 1.6, enter: true })); KEYS.sort((a, b) => a.t - b.t);
+    function finger(t, h){
+      let last = null, next = null;
+      for (const k of KEYS){ if (k.hand !== h) continue; if (k.t <= t) last = k; else { next = k; break; } }
+      const dt = last ? t - last.t : 9, big = last && last.enter ? 1.7 : 1;
+      const press = (dt < .035 ? easeOut(dt / .035) : Math.max(0, 1 - (dt - .035) / (.11 * big))) * big;
+      const lead = next && next.enter ? .16 : .1, move = next ? eio((t - (next.t - lead)) / lead) : 0;
+      const key = lerp(last ? last.key : 0, next ? next.key : (last ? last.key : 0), move);
+      const idle = clamp((dt - .4) / .35) * (next ? clamp((next.t - .15 - t) / .2) : 1);
+      return { press, key, hop: Math.sin(move * Math.PI) * (next && next.enter ? 2 : 1), idle };
+    }
+    const HOME = [[302, 173.2], [292, 172.2]];
+    return {
+      count: t => KEYS.filter(k => k.t <= t && !k.enter).length, total: KEYS.filter(k => !k.enter).length,
+      last: t => (KEYS.filter(k => k.t <= t).pop() || { t: -9 }).t,
+      pose(t, lean = 6, X = RX){
+        const out = { x: X, y: RY, s: RS, lean, lift: 0, shrug: 0, typeK: 1, hN: 0, hF: 0, head: 5 + Math.sin(t * 1.6) * .8, hair: Math.sin(t * 1.6 - .5) * .8 };
+        let effort = 0;
+        [0, 1].forEach(h => { const f = finger(t, h), home = HOME[h];
+          const F = [home[0] + f.key * 12, home[1] + f.press * 2.2 - f.hop * 3 - f.idle * 2];
+          const a = 9 + f.press * 6 - f.hop * 3 - f.idle * 4;
+          out[h ? 'wF' : 'wN'] = toUpper(typingWrist(F, a), lean, 0); out[h ? 'aF' : 'aN'] = a - lean; effort += f.press; });
+        out.lift = effort * .5; return out;
+      },
+    };
+  }
+  const SEAT = { x: RX, y: RY, s: RS };
+  const rest = t => ({ ...SEAT, ...STAND.rest(t), shrug: 0, typeK: 0 });
+  const LAP = t => ({ ...rest(t), lean: -7, lift: -2, head: -2 + Math.sin(t * 1.3), wN: [196, 222], hN: 30, wF: [184, 226], hF: 30 });
+  const EDGE = t => ({ ...rest(t), lean: -2, head: 6 + Math.sin(t * 1.2), shrug: 3, wN: [250, 176], hN: 14, wF: [240, 177], hF: 14 });
+  const MUGREACH = [236, 172], CHEST = [214, 140];
+  const holdMug = (b, w) => ({ ...b, typeK: 0, wN: w, handN: 'palm', hN: -8 });
+  function sip(t, a, b){ const p = LAP(t);
+    if (t < a + .35) return { ...p, wN: MUGREACH, handN: 'palm', hN: -8, lean: -3 };
+    if (t < b - .35) return { ...holdMug(p, CHEST), lean: -5, head: 4 };
+    return { ...holdMug(p, MUGREACH), lean: -3 }; }
+  const P1 = typist(5.2, [[ev('v3', .3), ev('v3', 3.3)]], 1.3, [ev('v3', 3.45)]);
+  const READ = typist(4.1, [[ev('v7', .6), ev('v16', 0)]], .45);
+  const T2a = typist(6.3, [[ev('v26', .3), ev('v26', 2.2)]], 1.3, [ev('v26', 2.35)]);
+  const T2b = typist(7.4, [[ev('v27', .3), ev('v27', 1.8)]], 1.3, [ev('v27', 1.95)]);
+  const T2c = typist(8.5, [[ev('v29', .2), ev('v29', 2.1)]], 1.3, [ev('v29', 2.25)]);
+  const IDLE = typist(1.1, [], 1), CLOSE = typist(9.1, [[ev('v31', 2.8), END + 8]], .8);
+  const NODS = [.4, .9, 1.4, 1.9].map(d => ev('v30', d));
+  function alexT(t){
+    if (t < CUT2){
+      if (t < ev('v2', .8)) return LAP(t);
+      if (t < ev('v2', 2.4)) return sip(t, ev('v2', .8), ev('v2', 2.4));
+      if (t < ev('v3', .2)) return LAP(t);
+      if (t < ev('v3', 3.7)) return P1.pose(t);
+      if (t < ev('v7', .6)) return EDGE(t);
+      const s = k01(t, ev('v9', 0), 2.2), p = READ.pose(t, 7 + s * 4);
+      return { ...p, shrug: s * 5, head: 7 + s * 5 + Math.sin(t * 1.4) * .8 };
+    }
+    if (t < ev('v26', .2)) return LAP(t);
+    if (t < ev('v26', 2.5)) return T2a.pose(t);
+    if (t < ev('v27', .2)) return IDLE.pose(t);
+    if (t < ev('v27', 2.1)) return T2b.pose(t);
+    if (t < ev('v29', .1)) return IDLE.pose(t);
+    if (t < ev('v29', 2.4)) return T2c.pose(t);
+    if (t < ev('v31', .4)){ const p = IDLE.pose(t, 4); let nod = 0; NODS.forEach(n => nod += Math.sin(k01(t, n, .45) * Math.PI) * 6); return { ...p, head: p.head + nod }; }
+    if (t < ev('v31', 2.6)) return sip(t, ev('v31', .4), ev('v31', 2.6));
+    return CLOSE.pose(t);
+  }
+  const holding = t => win(t, ev('v2', .8), ev('v2', 2.4)) || win(t, ev('v31', .4), ev('v31', 2.6));
+  const VT = [typist(2.2, [[0, 999]], .9), typist(3.3, [[0, 999]], 1.1), typist(4.4, [[0, 999]], .8)];
+  function mateT(i, t){
+    const X = tm[i].x, base = { x: X, y: RY, s: RS, ...STAND.rest(t + i), typeK: 0, shrug: 0, wN: [250, 175], hN: 12, wF: [240, 176], hF: 12 };
+    if (i === 1 && win(t, ev('v32', 4.6), ev('v33', 1.4))){ const b = Math.max(0, Math.sin((t - ev('v32', 4.6)) * 4.4)) * 6;
+      return { ...base, lean: 3, wN: [256, 160 - b], handN: 'palm', hN: 14, head: 3 }; }
+    if (i === 0){ const r = ease(t, ev('v33', .5), .5) * (1 - ease(t, ev('v33', 1.9), .5)), sl = ease(t, ev('v33', 1.0), .7);
+      return { ...base, lean: 2 + r * 5, wN: [lerp(250, 266 + sl * 19, r), lerp(175, 170, r)], hN: lerp(12, 0, r), head: 6 * r + 2 }; }
+    return { ...base, head: 3 + Math.sin(k01(t, ev('v33', 1.6), .8) * Math.PI * 2) * 4 };
+  }
+
+  // =====================================================================
+  // CAMERA
+  // =====================================================================
+  const MA = [A.mon.cx, A.mon.cy];
+  const CAM = [
+    [0, ...MA, ZIN], [ev('v2'), ...MA, ZIN], [ev('v2', 2.1), 810, 430, 1.12],
+    [ev('v3', .5), 830, 428, 1.16], [ev('v3', 1.7), ...MA, ZIN],
+    [ev('v7', .1), ...MA, ZIN], [ev('v7', 1.5), 890, 372, 2.0],
+    [ev('v8', 1.3), 892, 372, 2.03], [ev('v8', 2.3), 880, 420, 1.3],
+    [ev('v10', .1), 880, 418, 1.32], [ev('v10', 1.1), 640, 350, 1.35],
+    [ev('v11', -.1), 642, 350, 1.37], [ev('v11', 4.6), 800, 430, .13], [CUT2 - .01, 800, 430, .12],
+    [CUT2, 810, 430, 1.12], [ev('v26', .9), 840, 425, 1.2], [ev('v26', 2.0), ...MA, ZIN],
+    [ev('v30', .2), ...MA, ZIN], [ev('v30', 1.5), 900, 382, 2.0],
+    [ev('v31', .0), 902, 382, 2.02], [ev('v31', .9), 640, 350, 1.35],
+    [ev('v32', 0), 642, 350, 1.37], [ev('v32', 3.3), 1200, 430, .13], [ev('v32', 4.4), 1200, 430, .128],
+    [ev('v33', .7), 2400, 420, 1.1], [END + 8, 2400, 420, 1.16],
+  ];
+  function camAt(t){
+    let i = 0; while (i < CAM.length - 2 && t > CAM[i + 1][0]) i++;
+    const a = CAM[i], b = CAM[i + 1], k = b[0] > a[0] ? eio((t - a[0]) / (b[0] - a[0])) : 1;
+    const z = Math.exp(lerp(Math.log(a[3]), Math.log(b[3]), k)), dz = 1 + Math.sin(t * .37) * .004;
+    return [lerp(a[1], b[1], k) + Math.sin(t * .4) * 3 / Math.min(z, 3), lerp(a[2], b[2], k) + Math.cos(t * .33) * 2 / Math.min(z, 3), z * dz];
+  }
+  const proj = (c, x, y) => [(x - c[0]) * c[2] + 800, (y - c[1]) * c[2] + 450];
+  const dusk = t => t >= CUT2 ? 0 : ease(t, ev('v8', 0), ev('v11') - ev('v8')) * .8;
+  const sp = (fn, t, from) => springPose(fn, Math.max(from, t - 4), t);
+  const flapsTo = (row, s, t, t0) => row.forEach((f, i) => { const rolling = t > t0 && t - t0 < .25 + i * .03;
+    f.textContent = rolling ? 'ABCDEFGHIJKLMNOPRSTUVW'[Math.floor((t * 40 + i * 3) % 22)] : s.padEnd(FLAPN, ' ')[i]; });
+  const center = (s, n) => ' '.repeat(Math.floor((n - s.length) / 2)) + s;
+
+  // =====================================================================
+  // RENDER
+  // =====================================================================
+  onRender(at => {
+    const t = at, c = camAt(t), [fx, fy, z] = c;
+    const inSky = t >= SKY0 && t < CUT2;
+    act.setAttribute('transform', `translate(800 450) scale(${z}) translate(${-fx} ${-fy})`);
+    bld.setAttribute('display', z > 1.05 ? 'none' : 'inline');
+    const dk = dusk(t), take2 = t >= CUT2;
+    shells.forEach(s => { s.wall.setAttribute('fill', hexmix('#f6f2ea', '#8b8fb8', dk)); s.sky.setAttribute('fill', hexmix('#dbe8fa', '#262c6b', dk)); s.sun.setAttribute('fill', hexmix('#fde293', '#e8eaff', dk));
+      s.sun.setAttribute('r', 28 - dk * 10); s.hills.setAttribute('fill', hexmix('#c7e0cc', '#3a4380', dk)); });
+    pools.forEach(p => op(p, dk));
+    tint.setAttribute('fill', dk > 0 ? '#5a5ea8' : '#ffd9a0'); op(tint, dk > 0 ? dk * .3 : take2 && t >= ev('v32') ? .07 : .04);
+    A.mon.glow.setAttribute('opacity', .25 + dk * .6);
+    op(darken, win(t, ev('v13', -.15), SKY0 + 1) ? ease(t, ev('v13', -.15), .3) * .62 : 0);
+
+    // characters
+    A.per.pose(sp(alexT, t, take2 ? CUT2 : 0));
+    variants.forEach((v, i) => v.st.per.pose(VT[i].pose(t + i * .7)));
+    tm.forEach((m, i) => m.per.pose(sp(tt => mateT(i, tt), t, ev('v32', 3))));
+    const hold = holding(t); op(handMug, hold); op(deskMug, !hold);
+    const sw = A.per.solved.near; if (sw) handMug.setAttribute('transform', `translate(${sw.W[0]} ${sw.W[1]}) rotate(${sw.dir + 20}) translate(14 2) rotate(${-(sw.dir + 20)}) scale(${1 / RS})`);
+    const hot = t < ev('v8') || take2, sy = (t * 14) % 30;
+    steam.setAttribute('d', `M790,${458 - sy} C783,${446 - sy} 797,${436 - sy} 790,${424 - sy}`); op(steam, hot && !hold ? .8 * (1 - sy / 30) : 0);
+    tableCards.forEach((tc, i) => { const sl = i === 0 ? ease(t, ev('v33', 1.0), .7) * 30 : 0, lift = i === 0 ? Math.sin(k01(t, ev('v33', 1.0), .7) * Math.PI) * 4 : 0; tf(tc.g, tc.x + sl, 498 - lift); });
+
+    // the variants: busy at dusk, the title, calm in daylight
+    variants.forEach((v, i) => { const sc = v.scr, title = win(t, ev('v13', -.1), CUT2), calm = take2;
+      op(sc.busy, !title && !calm); op(sc.dark, title); op(sc.calm, calm);
+      sc.bars.forEach((b, j) => b.setAttribute('y', 220 + ((j * 48 - t * (300 + i * 90)) % 672 + 672) % 672));
+      sc.cnt.textContent = `${20 + Math.floor((t * (9 + i * 4)) % 60)} files`;
+      v.st.mon.glow.setAttribute('opacity', .25 + dk * .6);
+      v.pile.forEach(p => op(p.g, !take2 && p.i < 4 + Math.floor(8 * k01(t, ev('v9', -1 + i * .3), 4)))); });
+    alexPile.forEach(p => { const land = ev('v9', .5 + p.i * .14), k = Math.min(1, Math.max(0, backOut((t - land) / .3)));
+      tf(p.g, p.x, p.y - (1 - k) * 90, 1, p.r * k); op(p.g, !take2 && t > land); });
+
+    // the release board
+    if (!take2){ const t0 = ev('v10', .9); flapsTo(flapRows[0], t < t0 ? center('PAYMENTS V2', FLAPN) : 'RELEASE TODAY', t, t0); flapsTo(flapRows[1], t < t0 ? center('IN PROGRESS', FLAPN) : center('OWNER: ALEX', FLAPN), t, t0); }
+    else { const t0 = ev('v31', .9); flapsTo(flapRows[0], t < t0 ? center('PAYMENTS V2', FLAPN) : 'RELEASE TODAY', t, t0); flapsTo(flapRows[1], t < t0 ? center('IN PROGRESS', FLAPN) : center('OWNER: ALEX', FLAPN), t, t0); }
+    const okk = take2 ? pop(t, ev('v31', 1.5), .4) : 0; boardOk.setAttribute('transform', `translate(${BX + BW - 4} ${BY + 4}) scale(${okk}) translate(${-(BX + BW - 4)} ${-(BY + 4)})`);
+
+    // ---- Alex's monitor
+    const montOn = t < FREEZE; op(mont, montOn);
+    if (montOn){ let ci = 0; CUTS.forEach(([c0], i) => { if (t >= c0) ci = i; });
+      [mF, mR, mD].forEach(g => op(g, g === CUTS[ci][1]));
+      const lt = t - CUTS[ci][0], punch = 1.06 - .06 * easeOut(clamp(lt / .5));
+      mont.setAttribute('transform', `translate(800 450) scale(${punch}) translate(-800 -450)`);
+      mFS.set(t * 170); mFcnt.textContent = `Writing ${Math.min(18, 3 + Math.floor(t * 3))} files`;
+      mBot.pose({ x: 90, y: 66, s: 1, look: [.6, .2], blink: blinkAt(t), lag: Math.sin(t * 4), show: 1, sq: Math.sin(t * 6) * .05 });
+      mRbadge.textContent = `AI review: ${Math.min(14, 3 + Math.floor(t * 2.4))} comments`;
+      mRc.forEach((g, i) => op(g, lt > .1 + i * .12 || t > 3.9));
+      mDl.forEach((r, i) => r.setAttribute('width', 820 * clamp((lt - i * .12) / .3) * (1 - (i * 37 % 30) / 100)));
+    }
+    wsBot.pose({ x: 90, y: 66, s: 1, look: [.6, .2], blink: blinkAt(t), lag: Math.sin(t * 2), show: 1, sq: Math.sin(t * 1.4) * .03 });
+    // the prompt
+    let typed = '', me = '';
+    const P1S = 'Move billing to the new payments system.', T2S = ['Move billing to the new payments system. Plan first.', 'If anything is unclear, ask.', 'Small pull requests. State your assumptions.'];
+    const typing = (tp, s, a, b) => { if (win(t, a, b)) typed = s.slice(0, Math.round(s.length * tp.count(t) / tp.total)); };
+    typing(P1, P1S, ev('v3', .3), ev('v3', 3.45));
+    if (!take2 && t >= ev('v3', 3.45)) me = P1S;
+    typing(T2a, T2S[0], ev('v26', .3), ev('v26', 2.35)); typing(T2b, T2S[1], ev('v27', .3), ev('v27', 1.95)); typing(T2c, T2S[2], ev('v29', .2), ev('v29', 2.25));
+    if (t >= ev('v26', 2.35)) me = T2S[0]; if (t >= ev('v27', 1.95)) me = T2S[1]; if (t >= ev('v29', 2.25)) me = T2S[2];
+    promptTxt.textContent = typed; op(promptPh, !typed);
+    const lastKey = Math.max(P1.last(t), T2a.last(t), T2b.last(t), T2c.last(t));
+    caret.setAttribute('x', 142 + (typed ? promptTxt.getComputedTextLength() : 0)); caret.setAttribute('y', 602); op(caret, typed && (Math.floor(t * 3) % 2 === 0 || t - lastKey < .4));
+    meTxt.textContent = me; op(meRow, !!me);
+    // take one
+    const codeOn = !take2 && win(t, ev('v4'), ev('v5', -1.2)); op(code, codeOn);
+    if (codeOn){ const kk = ease(t, ev('v4', .2), 2.4); codeS.set((Math.min(t, ev('v4', 2.6)) - ev('v4')) * 150);
+      files.textContent = `${Math.round(63 * kk)} files changed`; plus.textContent = `+${Math.round(4812 * kk).toLocaleString('en-US')}`; minus.textContent = `−${Math.round(1977 * kk).toLocaleString('en-US')}`; }
+    const diveOn = win(t, ev('v5', -1.6), ev('v7', .25)); op(dive, diveOn);
+    if (diveOn){ const t0 = ev('v5', -1.6);
+      diveCards.forEach(d => { const a = t0 + d.t - 1.1, k = k01(t, a, 1.1); tf(d.g, 800, 450, lerp(.45, 1.9, eio(k))); op(d.g, t > a && k < 1 ? Math.min(1, k * 4) * (1 - k01(k, .6, .4)) : 0); });
+      const k41 = eio(k01(t, t0 + 3.0, 1.0)); tf(f41, 800, 450, lerp(.45, 1, k41)); op(f41, t > t0 + 3.0 ? Math.min(1, k41 * 3) : 0);
+      const g = ease(t, t0 + 4.2, .5) * (.85 + .15 * Math.sin(t * 2.5)); op(glowBack, g * .55); op(glowBox, ease(t, t0 + 4.2, .4));
+      refunds.forEach((r, i) => op(r, ease(t, ev('v6', .25 + i * .45), .25))); }
+    const f1On = !take2 && win(t, ev('v7', .2), ev('v13', -.1)); op(file1, f1On);
+    if (f1On){ const n = t < ev('v9', 1) ? 1 : t < ev('v10', 1.5) ? 2 : 3; f1Title.textContent = `File ${n} of 63`;
+      ticks.forEach((tk, i) => { if (i !== 40) tk.setAttribute('fill', i === n - 1 ? '#fff' : '#4a5190'); });
+      f1Rows.forEach((r, i) => r.setAttribute('y', 300 + ((i * 34 - (t - ev('v7')) * 14) % 408 + 408) % 408 - 20));
+      op(tick41Glow, .5 + .5 * Math.sin(t * 4)); }
+    op(aDark, !take2 && win(t, ev('v13', -.1), CUT2));
+    // take two
+    op(plan, take2 && win(t, ev('v26', 2.6), ev('v28', .1)));
+    planRows.forEach((r, i) => op(r.g, ease(t, ev('v26', 2.7 + i * .2), .25)));
+    strike.setAttribute('width', 262 * ease(t, ev('v26', 4.0), .3));
+    const NEWS = 'Tests, then a staged rollout'; planNew.textContent = NEWS.slice(0, Math.round(NEWS.length * k01(t, ev('v26', 4.2), .7)));
+    const appr = t > ev('v26', 5.6); approveBox.setAttribute('fill', appr ? '#34a853' : '#4285f4'); approveTxt.textContent = appr ? 'Approved' : 'Approve plan';
+    op(ask, take2 && win(t, ev('v28', .1), ev('v29', 2.5)));
+    const held = t > ev('v28', 3.0); askBtn.forEach((b, i) => { const on = i === 1 && held; b.r.setAttribute('fill', on ? '#4285f4' : '#fff'); b.t2.setAttribute('fill', on ? '#fff' : '#1a73e8'); });
+    op(askDone, ease(t, ev('v28', 3.2), .3));
+    op(prs, take2 && t >= ev('v29', 2.6));
+    prCards.forEach((p, i) => { const k = pop(t, ev('v29', 2.7 + i * .22), .4); p.g.setAttribute('transform', `translate(${p.x + 164} 385) scale(${Math.min(1, k)}) translate(${-p.x - 164} -385)`); op(p.g, k > 0);
+      op(p.done, ease(t, NODS[i], .25)); });
+    // the cursor: fix a plan step, approve the plan, hold the refunds
+    const CUR = [[ev('v26', 3.3), [900, 760], [300, 501]], [ev('v26', 4.9), [400, 540], [1320, 511]], [ev('v28', 2.2), [900, 760], askBtn[1].cx + 10, 457]];
+    let curOn = false;
+    CUR.forEach(([s0, from, tx, ty]) => { const tgt = Array.isArray(tx) ? tx : [tx, ty];
+      if (win(t, s0, s0 + 1.1)){ curOn = true; const k = ease(t, s0, .7), press = Math.sin(k01(t, s0 + .7, .18) * Math.PI) * .12; tf(cursor, lerp(from[0], tgt[0], k), lerp(from[1], tgt[1], k), 1 - press); } });
+    op(cursor, curOn);
+
+    // ---- the sky
+    op(sky, inSky ? ease(t, SKY0, .8) : 0);
+    if (inSky){
+      const X = crowdXf(t);
+      skyWorld.setAttribute('transform', `translate(800 ${X[0]}) scale(${X[1]}) translate(-800 -520)`);
+      const dim = win(t, ev('v23', -.2), CUT2) ? .25 : 1;
+      people.forEach(p => { const on = !p.isNew ? pop(t, SKY0 + .5 + p.order * 2.6, .35) : pop(t, ev('v21', 2.4 + p.order * 2.0), .35);
+        p.g.setAttribute('transform', `translate(${p.x} ${p.y - 8}) scale(${.6 * on})`); op(p.g, (on > 0 ? 1 : 0) * dim); op(p.halo, on > 0 ? (p.isNew && t < ev('v22', 1) ? .8 : .25) : 0); });
+      op(crowdG, 1 - ease(t, ev('v25', .2), .6));
+      lanes.forEach(l => { const a = ev('v17', .6 + l.i * .12), lt2 = ev('v19', LIGHT[l.id]), lit2 = t > lt2, cur = lit2 && t < lt2 + 1.2;
+        op(l.g, ease(t, a, .4) * (1 - ease(t, ev('v24', .1), .6)));
+        l.band.setAttribute('opacity', win(t, ev('v19'), ev('v21')) ? (cur ? .22 : lit2 ? .12 : .05) : .07);
+        l.head.setAttribute('fill', win(t, ev('v19'), ev('v21')) && lit2 ? '#fff' : '#9aa0c8');
+        l.head.setAttribute('transform', cur ? `translate(${LX[l.i]} 248) scale(${1 + .08 * Math.sin(k01(t, lt2, .4) * Math.PI)}) translate(${-LX[l.i]} -248)` : ''); });
+      lanterns.forEach(l => { const k = ease(t, l.t, 1.6), from = toScreen(l.p, X);
+        tf(l.g, lerp(from[0], l.to[0], k), lerp(from[1] - 10, l.to[1], k) - Math.sin(k * Math.PI) * 50, 1 - k * .35);
+        op(l.g, t > l.t ? (k < 1 ? 1 : .7) * (1 - ease(t, ev('v18', .3), .5)) : 0); });
+      op(legend, fadeWin(t, ev('v17', 1.0), ev('v18', .2), .4));
+      laneCards.forEach(d => { const k = pop(t, ev('v18', .3 + d.k * .045), .45); tf(d.g, d.x, d.y, Math.max(0, k));
+        op(d.g, t > ev('v18', .3 + d.k * .045) ? 1 - ease(t, ev('v24', .1 + d.li * .08), .5) : 0);
+        d.g.setAttribute('transform', `translate(${d.x} ${d.y - ease(t, ev('v24', .1 + d.li * .08), .5) * 80}) scale(${Math.max(0, k)})`); });
+      ccCards.forEach((d, j) => { const k = pop(t, ev('v20', .1 + j * .09), .45);
+        d.g.setAttribute('transform', `translate(${d.x} ${d.y - ease(t, ev('v24', .2), .5) * 60}) scale(${Math.max(0, k)})`); op(d.g, k > 0 ? 1 - ease(t, ev('v24', .2), .5) : 0); });
+      op(ccLabel, ease(t, ev('v20', .5), .4) * (1 - ease(t, ev('v24', .2), .4)));
+      tools.forEach(tl => { const m = ev('v21', 1.4 + tl.i * .35), on = ease(t, ev('v18', .6), .5) * (1 - ease(t, ev('v23', -.3), .4)), bob = Math.sin(t * 2 + tl.i) * 6;
+        const ka = 1 - k01(t, m, .25), kb = pop(t, m + .15, .45);
+        tl.a.pose({ x: tl.x, y: tl.y + bob, s: 1.2 * ka, look: [Math.sin(t + tl.i) * .6, .2], blink: blinkAt(t + tl.i), lag: Math.sin(t * 2), show: on * (ka > 0 ? 1 : 0), sq: (1 - ka) * .3 });
+        tl.b.pose({ x: tl.x, y: tl.y + bob, s: 1.45 * kb, tilt: 12 * Math.sin(t * 1.3 + tl.i), look: [Math.sin(t + tl.i) * .6, .2], blink: blinkAt(t + tl.i + .5), lag: Math.cos(t * 2), show: on * (kb > 0 ? 1 : 0), sq: .14 }); });
+      op(scrim, win(t, ev('v23', -.2), ev('v24', 12)) ? ease(t, ev('v23', -.2), .4) * .7 : 0);
+      bars.forEach(b => { const k = ease(t, b.t, 1.1); b.fill.setAttribute('width', 860 * b.v / 100 * k); b.num.textContent = k > 0 ? `${Math.round(b.v * k)}%` : '';
+        op(b.g, fadeWin(t, b.t - .2, ev('v24', 0), .35)); });
+      phrases.forEach(ph => { op(ph.t2, ease(t, ph.t, .45) * (1 - ease(t, ev('v25', .2), .5)));
+        const fall = ease(t, ev('v25', .2), .9); ph.t2.setAttribute('transform', `translate(800 ${300 + ph.i * 110}) scale(${lerp(1, .3, fall)}) translate(-800 ${-300 - ph.i * 110 + (1 - ease(t, ph.t, .45)) * 20 + fall * 260})`); });
+    }
+
+    // ---- overlay
+    op(flash, montOn || t < FREEZE + .3 ? (() => { let f = 0; CUTS.concat([[FREEZE]]).forEach(([c0]) => { if (c0 > 0 && t >= c0 && t < c0 + .14) f = Math.max(f, (1 - (t - c0) / .14) * (c0 === FREEZE ? .4 : .12)); }); return f; })() : 0);
+    const lw = fadeWin(t, ev('v2', 1.0), ev('v3', .7), .35); op(lower, lw); tf(lower, 90 - (1 - ease(t, ev('v2', 1.0), .4)) * 40, 740);
+    const showMark = win(t, ev('v7', 1.1), ev('v8', 1.6));
+    if (showMark){ const p = proj(c, ...uiW(1450, tickY(40) + 2)); tf(mark, p[0], p[1]); markRing.setAttribute('r', 30 + ((t * 30) % 24)); markRing.setAttribute('opacity', 1 - ((t * 30) % 24) / 24); }
+    op(mark, showMark ? ease(t, ev('v7', 1.1), .3) * (1 - k01(t, ev('v8', 1.3), .3)) : 0);
+    toasts.forEach(ts => { const k = ease(t, ts.t, .45), fl = ease(t, ev('v9', .05 + ts.i * .14), .45), dst = proj(c, alexPile[ts.i].x, alexPile[ts.i].y);
+      const x = lerp(1600, 1166, k), y = ts.y; tf(ts.g, lerp(x, dst[0] - 215 * .2, fl), lerp(y, dst[1], fl) - Math.sin(fl * Math.PI) * 80, lerp(1, .2, fl));
+      op(ts.g, t > ts.t && fl < 1 ? 1 : 0); });
+    takes.forEach(tk => { const life = t - tk.t, k = ease(t, tk.t, .5), ang = tk.i * .785 + life * .55;
+      const x = 800 + Math.cos(ang) * 560, y = 450 + Math.sin(ang) * 290, d = .82 + .22 * Math.sin(ang);
+      tf(tk.g, x, y, d * Math.min(1, k), Math.sin(ang * 2) * 4); op(tk.g, t > tk.t ? k * (1 - k01(t, ev('v13', -.4), .35)) * (.55 + .45 * (d - .6) / .44) : 0); });
+    // the title, in a new form with each release
+    const nTag = t < ev('v15', -.2) ? TAGS.filter(tg => t > tg.t).length : 0, sty = TSTY[nTag % TSTY.length];
+    TITLE.setAttribute('font-family', sty.f); TITLE.setAttribute('font-weight', sty.w); TITLE.setAttribute('letter-spacing', sty.ls); TITLE.setAttribute('fill', sty.c); TITLE.setAttribute('font-style', sty.it);
+    const tagHit = TAGS.reduce((m, tg) => Math.max(m, t > tg.t ? Math.sin(k01(t, tg.t, .3) * Math.PI) : 0), 0);
+    const tUp = ease(t, ev('v15', -.1), .7), tIn = ease(t, ev('v13', -.1), .35);
+    TITLE.setAttribute('transform', `translate(0 ${lerp(0, -270, tUp)}) translate(800 480) scale(${lerp(1, .5, tUp) * (1 + tagHit * .05) * lerp(.92, 1, tIn)}) translate(-800 -480)`);
+    op(TITLE, win(t, ev('v13', -.1), SKY0 + .6) ? tIn * (1 - ease(t, SKY0, .5)) : 0);
+    TAGS.forEach(tg => { const k = pop(t, tg.t, .4); tf(tg.g, tg.x, tg.y, Math.max(0, k)); op(tg.g, t > tg.t ? 1 - ease(t, ev('v15', -.2), .4) : 0); });
+    show(SUP.q1, t, ev('v15', .1), SKY0 - .1); show(SUP.q2, t, ev('v15', 2.5), SKY0 - .1);
+    show(SUP.study, t, SKY0 + .5, SKY0 + 2.2);
+    SUP.nDev.words[0].textContent = Math.round(860 * ease(t, SKY0 + 2.6, 1.8)).toLocaleString('en-US');
+    show(SUP.nDev, t, SKY0 + 2.5, ev('v18', .1)); show(SUP.atMs, t, SKY0 + 5.9, ev('v18', .1));
+    SUP.nGl.words[0].textContent = String(Math.round(35 * ease(t, ev('v18', .3), 1.8)));
+    show(SUP.nGl, t, ev('v18', .3), ev('v21', .1)); show(SUP.glSub, t, ev('v20', .1), ev('v21', .1));
+    SUP.nAll.words[0].textContent = (860 + Math.round(258 * ease(t, ev('v21', 2.6), 2.0))).toLocaleString('en-US');
+    show(SUP.nAll, t, ev('v21', 2.0), ev('v23', -.3)); show(SUP.cos, t, ev('v22', 2.0), ev('v23', -.3), [ev('v22', 2.1), ev('v22', 2.5), ev('v22', 2.9), ev('v22', 3.2), ev('v22', 3.5)]);
+    show(SUP.year, t, ev('v21', .25), ev('v21', 1.9));
+    const ck = pop(t, ev('v21', .05), .45); tf(cal, 800, 380, Math.max(0, ck) * .9); op(cal, fadeWin(t, ev('v21', .05), ev('v21', 1.9), .3));
+    const flip = k01(t, ev('v21', .35), 1.1), pf = (flip * 12) % 1; calYr.textContent = String(Math.max(1, Math.min(12, Math.ceil(flip * 12))));
+    calPage.setAttribute('transform', `translate(0 -66) scale(1 ${flip > 0 && flip < 1 ? Math.abs(Math.cos(pf * Math.PI)) : 1}) translate(0 66)`);
+    // clapperboard: take two
+    const cpk = pop(t, ev('v25', .5), .45), snap = ease(t, ev('v25', 1.05), .12);
+    tf(clap, 800, 470, Math.max(0, cpk) * (1 - ease(t, CUT2 - .25, .3) * .2)); op(clap, win(t, ev('v25', .5), CUT2 + .1) ? 1 - k01(t, CUT2 - .1, .2) : 0);
+    clapStick.setAttribute('transform', `rotate(${lerp(-24, 0, snap)} -280 -114)`);
+    // chips: lane at the bottom, then into the tray
+    chips.forEach(ch => {
+      const a = ch.t, hd = ch.hold, k = ease(t, a, .4), coll = ease(t, a + hd - .45, .45), on = t >= a && t < a + hd, inTray = t >= a + hd && t < ev('v32', .2);
+      op(ch.g, on); op(ch.panel, 1 - k01(t, a + hd - .35, .2));
+      if (on){ const tr = TRAY(ch.k); ch.g.setAttribute('transform', `translate(${lerp(120, tr[0] - 32, coll)} ${lerp(870 - ch.h + (1 - k) * 60, tr[1] - 20, coll) - Math.sin(coll * Math.PI) * 80}) scale(${lerp(1, .05, coll)})`); }
+      const tr = TRAY(ch.k); tf(ch.b, tr[0], tr[1]); op(ch.b, inTray ? 1 - k01(t, ev('v32', -.1), .3) : 0);
+    });
+    if (inferredSpan){ const g = fadeWin(t, ev('v27', 4.2), ev('v27', 5.2), .2); inferredSpan.setAttribute('fill', g > .5 ? '#b06000' : '#1d2433'); inferredSpan.setAttribute('font-weight', g > .5 ? 800 : 600);
+      inferredSpan.setAttribute('style', g > 0 ? `paint-order:stroke;stroke:#fde293;stroke-width:${14 * g}px;stroke-linejoin:round` : ''); }
+    // skill and the site
+    const skA = ev('v33', 2.5), skK = ease(t, skA, .7); op(skill, t >= skA && t < ev('v34', .6) ? 1 : 0);
+    if (t >= skA){ const s0 = lerp(.12, 1, skK), o = [800, 520]; skill.setAttribute('transform', `translate(${o[0] - o[0] * s0} ${o[1] - o[1] * s0}) scale(${s0})`); }
+    skLines.forEach((l, i) => op(l, ease(t, skA + .8 + i * .45, .3))); op(skLoaded, ease(t, ev('v33', 5.6), .3));
+    edBot.pose({ x: 1450, y: 110, s: 1.4 * (1 + Math.sin(k01(t, ev('v33', 5.6), .5) * Math.PI) * .15), look: [-.7, .3], blink: blinkAt(t), lag: Math.cos(t * 2), show: 1, sq: Math.sin(k01(t, ev('v33', 5.6), .5) * Math.PI) * .1 });
+    const siA = ev('v34', .1); op(site, t >= siA ? 1 : 0); site.setAttribute('transform', `translate(${(1 - ease(t, siA, .5)) * 1600} 0)`);
+    const step = t < siA + .7 ? 0 : Math.min(6, 1 + Math.floor((t - siA - .7) / .3)), ready = t > siA + 2.9;
+    shots.forEach((s, i) => op(s, ready ? i === 7 : i === step));
+    op(siteCur, win(t, siA + .5, siA + 3.0)); if (win(t, siA + .5, siA + 3.0)){ const i = Math.min(5, Math.floor(Math.max(0, t - siA - .6) / .3)); tf(siteCur, t < siA + 2.6 ? 1254 : lerp(1254, 923, ease(t, siA + 2.6, .2)), t < siA + 2.6 ? TOG[i] : lerp(TOG[5], 860, ease(t, siA + 2.6, .2))); }
+    // end card
+    op(endG, ease(t, END - .2, .6));
+    endFan.forEach(f => { const k = backOut((t - END - f.i * .08) / .55), a = (f.i - 2.5) * 8 * Math.min(1, Math.max(0, k));
+      f.g.setAttribute('transform', `rotate(${a} 800 800) translate(758 ${140 + (1 - Math.min(1, Math.max(0, k))) * 120})`); op(f.g, t > END + f.i * .08); });
+    tf(urlCard, 800, 664, pop(t, END + .7, .5));
+    $('grainT').setAttribute('seed', String(Math.floor(t * 30) % 97));
+  });
+})();
+</script>

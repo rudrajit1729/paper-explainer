@@ -34,6 +34,8 @@ def _butter(x, fc, kind):
 
 
 def compose(project: Project, timemap: dict, out_path) -> str:
+    if project.cfg.get("music", {}).get("style") == "groove":
+        return compose_groove(project, timemap, out_path)
     from scipy.io import wavfile
     from scipy.signal import fftconvolve
     spec = project.cfg.get("music", {})
@@ -133,5 +135,182 @@ def compose(project: Project, timemap: dict, out_path) -> str:
     out *= np.minimum(1, t / 0.6)[:, None] * np.clip((T - t) / 1.4, 0, 1)[:, None]
     out = np.tanh(out * 0.8) / np.tanh(0.8)
     out /= np.max(np.abs(out)) / 0.85
+    wavfile.write(str(out_path), SR, (out * 32767).astype(np.int16))
+    return str(out_path)
+
+
+# ---------------------------------------------------------------- groove
+GROOVE_DOC = """A driving, warm score with drums, bass, pads and plucks (project.json → "music": {"style": "groove", ...}).
+
+  "bpm": 104,
+  "progression": ["Cmaj9", "Em7", "Am9", "Fmaj9"],   one chord per bar, looping
+  "sections": [[0, 1], [5.5, 2], [41, 0], [44, 3]],  [animation time, level]: 0 pad only, 1 + plucks and hats,
+                                                      2 + kick, clap and bass, 3 + four-on-the-floor and 16th hats
+  "risers": [41, 44],                                 a noise rise that lands on these times
+  "impacts": [44],                                    a soft boom on these times
+  "end": 98                                           animation time where the band stops and the bells ring
+"""
+GCHORDS = {
+    "Cmaj9": [48, 55, 59, 62, 64], "Em7": [40, 52, 55, 59, 62], "Am9": [45, 52, 55, 59, 60], "Fmaj9": [41, 53, 57, 60, 64],
+    "G6": [43, 50, 55, 59, 64], "Dm9": [38, 50, 53, 57, 64], "Bbmaj9": [46, 53, 57, 60, 62],
+}
+
+
+def compose_groove(project: Project, timemap: dict, out_path) -> str:
+    from scipy.io import wavfile
+    from scipy.signal import fftconvolve
+    spec = project.cfg["music"]
+    keys, T = timemap["keys"], timemap["total"]
+    V = lambda a: anim_to_video(keys, float(a))
+    N = int(SR * T); rng = np.random.default_rng(11)
+    beat = 60.0 / float(spec.get("bpm", 104)); bar = 4 * beat
+    prog = [GCHORDS[c] for c in spec.get("progression", ["Cmaj9", "Em7", "Am9", "Fmaj9"])]
+    secs = sorted((V(a), int(l)) for a, l in spec.get("sections", [[0, 2]]))
+    end = V(spec["end"]) if "end" in spec else T - 2.0
+    level = lambda t: ([l for s0, l in secs if s0 <= t] or [secs[0][1]])[-1] if t < end else -1
+    buses = {k: np.zeros(N) for k in ("kick", "clap", "hat", "bass", "pad", "pluck", "fx")}
+
+    def add(bus, start, sig):
+        i = int(start * SR)
+        if i < 0: sig, i = sig[-i:], 0
+        if i < N:
+            j = min(N, i + len(sig)); buses[bus][i:j] += sig[: j - i]
+
+    tt = lambda d: np.arange(int(d * SR)) / SR
+    def kick():
+        t = tt(.42); f = 46 + 110 * np.exp(-t * 38)
+        return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 7.5) + .07 * rng.standard_normal(len(t)) * np.exp(-t * 300)
+    def clap():
+        t = tt(.32); n = rng.standard_normal(len(t))
+        env = sum(np.exp(-np.maximum(0, t - o) * 60) * (t >= o) for o in (0, .011, .022)) / 3 + .6 * np.exp(-t * 14)
+        return _butter(_butter(n * env, 900, "high"), 5200, "low") + .3 * np.sin(2 * np.pi * 190 * t) * np.exp(-t * 30)
+    def hat(open_=False):
+        t = tt(.18 if open_ else .05)
+        return _butter(_butter(rng.standard_normal(len(t)) * np.exp(-t * (18 if open_ else 90)), 6500, "high"), 11000, "low")
+    def pluck(f, d=.5):
+        t = tt(d); x = np.sin(2 * np.pi * f * t) + .45 * np.sin(4 * np.pi * f * t) * np.exp(-t * 9) + .2 * np.sin(6 * np.pi * f * t) * np.exp(-t * 14)
+        return x * np.minimum(1, t / .003) * np.exp(-t * 6.5)
+    def bassnote(f, d):
+        t = tt(d); saw = 2 * ((f * t) % 1) - 1
+        return (np.sin(2 * np.pi * f * t) * .8 + _butter(saw, 700, "low") * .35) * np.minimum(1, t / .008) * np.exp(-t * 2.2)
+
+    nbars = int(T / bar) + 2
+    side = np.ones(N)                                     # sidechain envelope from the kick
+    for b in range(nbars):
+        t0 = b * bar; ch = prog[b % len(prog)]
+        L = level(t0 + .01)
+        if L < 0: continue
+        # pad: detuned, slow attack, one bar
+        t = tt(bar + .4); env = np.minimum(1, t / .5) * np.clip((bar + .4 - t) / .5, 0, 1)
+        padsig = sum(np.sin(2 * np.pi * _m2f(m) * (1 + d) * t) + .3 * np.sin(4 * np.pi * _m2f(m) * (1 + d) * t) for m in ch[1:] for d in (-.003, 0, .003))
+        add("pad", t0, padsig * env * (.075 if L else .04))
+        for q in range(16):                                # sixteenth steps
+            ts = t0 + q * beat / 4; Lq = level(ts)
+            if Lq < 0: continue
+            if Lq >= 1 and q % 2 == 0:
+                m = ch[1:][(q // 2) % 4] + (12 if q % 8 < 4 else 24)
+                add("pluck", ts, pluck(_m2f(m)) * (.2 if q % 4 == 0 else .13))
+            if Lq >= 1 and q % 4 == 2: add("hat", ts, hat(q % 8 == 6 and Lq >= 2) * .055)
+            if Lq >= 3 and q % 2 == 1: add("hat", ts, hat() * .025)
+            if Lq >= 2 and (q in (0, 8) or (Lq >= 3 and q % 4 == 0)):
+                add("kick", ts, kick() * .9); i = int(ts * SR); w = int(.25 * SR)
+                if i < N: side[i:i + w] = np.minimum(side[i:i + w], .35 + .65 * (np.arange(min(w, N - i)) / w) ** .6)
+            if Lq >= 2 and q in (4, 12): add("clap", ts, clap() * .26)
+            if Lq >= 2 and q % 2 == 0 and q not in (6, 14):
+                add("bass", ts, bassnote(_m2f(ch[0] - 12 + (12 if q in (10,) else 0)), beat * .55) * .32)
+    for c in spec.get("risers", []):
+        t = tt(2.2); f = 400 * np.exp(t * 1.4); n = rng.standard_normal(len(t))
+        add("fx", V(c) - 2.2, _butter(n, 1200, "high") * (t / 2.2) ** 2.4 * .14 + np.sin(2 * np.pi * np.cumsum(f) / SR) * (t / 2.2) ** 3 * .03)
+    for c in spec.get("impacts", []):
+        t = tt(2.0)
+        add("fx", V(c), np.sin(2 * np.pi * np.cumsum(38 + 70 * np.exp(-t * 6)) / SR) * np.exp(-t * 2.2) * .5 + _butter(rng.standard_normal(len(t)) * np.exp(-t * 3), 3000, "low") * .08)
+    # sound effects, cued in animation time: [time, name, gain, duration, pitch semitones]
+    def sfx(name, d=1.0, pitch=0.0):
+        pf = 2 ** (pitch / 12)
+        if name == "whoosh":
+            t = tt(.85); n = rng.standard_normal(len(t)); env = np.sin(np.pi * np.clip(t / .85, 0, 1)) ** 2
+            lo = _butter(n, 2400 * pf, "low"); hi = _butter(n, 600 * pf, "high")
+            return (_butter(lo, 300, "high") * .6 + hi * .25 * np.clip(t / .85, 0, 1)) * env * .5
+        if name == "tick":
+            t = tt(.25); f = 1050 * pf
+            return (np.sin(2 * np.pi * f * t) + .4 * np.sin(2 * np.pi * f * 3.9 * t) * np.exp(-t * 40)) * np.exp(-t * 22) * .35
+        if name == "tap":
+            t = tt(.12); return (rng.standard_normal(len(t)) * np.exp(-t * 160) * .4 + np.sin(2 * np.pi * 180 * t) * np.exp(-t * 35)) * .5
+        if name == "clink":
+            t = tt(.6); return (np.sin(2 * np.pi * 2480 * t) + .6 * np.sin(2 * np.pi * 3720 * t)) * np.exp(-t * 9) * .12
+        if name == "thunk":
+            t = tt(.4); return np.sin(2 * np.pi * np.cumsum(70 + 90 * np.exp(-t * 30)) / SR) * np.exp(-t * 9) * .7
+        if name == "chunk":
+            t = tt(.35)
+            return (np.sin(2 * np.pi * np.cumsum(90 + 160 * np.exp(-t * 40)) / SR) * np.exp(-t * 12) * .8
+                    + _butter(rng.standard_normal(len(t)) * np.exp(-t * 90), 2500, "low") * .3)
+        if name == "slap":
+            t = tt(.16); return _butter(_butter(rng.standard_normal(len(t)) * np.exp(-t * 45), 700 * pf, "high"), 5000 * pf, "low") * .5
+        if name == "ping":
+            t = tt(.8); f = 1760 * pf
+            return (np.sin(2 * np.pi * f * t) + .45 * np.sin(2 * np.pi * f * 1.5 * t)) * np.minimum(1, t / .004) * np.exp(-t * 6) * .16
+        if name == "flip":
+            out = np.zeros(int(d * SR))
+            for k in range(int(d * 26)):
+                i = int((k / 26 + rng.uniform(0, .01)) * SR); c = tt(.03)
+                seg = _butter(rng.standard_normal(len(c)), 1800, "high") * np.exp(-c * 200) * .35
+                out[i:i + len(seg)] += seg[: max(0, len(out) - i)]
+            return out
+        if name == "lamp":
+            t = tt(.08); return _butter(rng.standard_normal(len(t)), 1500, "high") * np.exp(-t * 120) * .4
+        if name == "heart":
+            t = tt(.5); b = lambda o: np.sin(2 * np.pi * 52 * (t - o)) * np.exp(-np.maximum(0, t - o) * 14) * (t >= o)
+            return (b(0) + .7 * b(.18)) * .9
+        if name == "pop":
+            t = tt(.12); return np.sin(2 * np.pi * np.cumsum(500 * pf + 900 * np.exp(-t * 60)) / SR) * np.exp(-t * 30) * .2
+        if name == "shimmer":
+            out = np.zeros(int(d * SR))
+            for k in range(int(d * 18)):
+                f = _m2f(int(rng.choice([84, 86, 88, 91, 93, 96]))); c = tt(.6); i = int(rng.uniform(0, d - .6) * SR)
+                seg = np.sin(2 * np.pi * f * c) * np.sin(np.pi * c / .6) ** 2 * .03
+                out[i:i + len(seg)] += seg[: max(0, len(out) - i)]
+            return out
+        if name == "rise":
+            t = tt(d); return _butter(rng.standard_normal(len(t)), 900, "high") * (t / d) ** 2 * .16
+        if name == "type":
+            out = np.zeros(int(d * SR)); k = 0.0
+            while k < d - .05:
+                c = tt(.04); seg = (_butter(rng.standard_normal(len(c)), 2000, "high") * .25 + np.sin(2 * np.pi * 240 * c) * .3) * np.exp(-c * 140)
+                i = int(k * SR); out[i:i + len(seg)] += seg[: max(0, len(out) - i)]; k += rng.uniform(.07, .13) + (.18 if rng.random() < .12 else 0)
+            return out * .55
+        if name == "roll":
+            out = np.zeros(int(d * SR)); k = 0.0; step = .045
+            while k < d - .03:
+                c = tt(.03); seg = np.sin(2 * np.pi * 2200 * c) * np.exp(-c * 180) * .12
+                i = int(k * SR); out[i:i + len(seg)] += seg[: max(0, len(out) - i)]; k += step; step *= 1.03
+            return out
+        if name == "clap":
+            return clap() * .35
+        if name == "sting":
+            t = tt(2.6)
+            return sum(np.sin(2 * np.pi * _m2f(m) * t) * np.exp(-t * 1.8) * .1 for m in (60, 67, 72, 76, 79)) * np.minimum(1, t / .005)
+        return np.zeros(10)
+    for cue in spec.get("sfx", []):
+        tm, name = cue[0], cue[1]; g = cue[2] if len(cue) > 2 else 1.0; d = cue[3] if len(cue) > 3 else 1.0; pitch = cue[4] if len(cue) > 4 else 0.0
+        add("fx", V(tm), sfx(name, d, pitch) * g)
+    def chime(f, start, v):
+        t = tt(3.2)
+        x = sum(a * np.sin(2 * np.pi * f * r * t) * np.exp(-t * dk) for r, a, dk in ((1, 1, 1.4), (2.76, .3, 3.2), (5.4, .1, 6), (2, .22, 2.2)))
+        add("fx", start, v * x * np.minimum(1, t / .003))
+    for k, m in enumerate((72, 76, 79, 84)): chime(_m2f(m), end + k * .22, .12)
+    pad = _butter(buses["pad"], 2400, "low") * side
+    bass = _butter(buses["bass"], 900, "low") * (.4 + .6 * side)
+    dry = buses["kick"] + buses["clap"] * .9 + buses["hat"] + bass + pad + buses["pluck"] * (.7 + .3 * side) + buses["fx"]
+    def ir(seed):
+        r = np.random.default_rng(seed); t = np.arange(int(2.2 * SR)) / SR
+        return _butter(r.standard_normal(len(t)) * np.exp(-t / .5), 6000, "low") * .018
+    wet = buses["pluck"] + buses["clap"] * .6 + pad * .6 + buses["fx"] * .5
+    Lc = dry + fftconvolve(wet, ir(3))[:N] + np.roll(buses["pluck"], int(.012 * SR)) * .2
+    Rc = dry + fftconvolve(wet, ir(4))[:N] + np.roll(buses["pluck"], int(.008 * SR)) * .2
+    out = np.stack([Lc, Rc], 1)
+    t = np.arange(N) / SR
+    out *= np.minimum(1, t / .4)[:, None] * np.clip((T - t) / 1.2, 0, 1)[:, None]
+    out = np.tanh(out * 1.1) / np.tanh(1.1)
+    out /= np.max(np.abs(out)) / .9
     wavfile.write(str(out_path), SR, (out * 32767).astype(np.int16))
     return str(out_path)

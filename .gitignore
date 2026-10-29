@@ -5,3 +5,4 @@ projects/*/build/
 projects/*/output/*_preview.mp4
 projects/*/recordings/
 .DS_Store
+.env

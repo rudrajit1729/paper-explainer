@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1640 900" width="1640" height="900">
+  <style>text{font-family:Inter,Arial,sans-serif;fill:#3c4043}</style>
+  <rect x="120" y="250" width="420" height="400" rx="40" fill="#e8f0fe" stroke="#4285F4" stroke-width="4"/>
+  <text x="330" y="430" font-size="44" font-weight="700" text-anchor="middle">Input</text>
+  <text x="330" y="490" font-size="28" text-anchor="middle">replace with your figure</text>
+  <rect x="610" y="250" width="420" height="400" rx="40" fill="#e6f4ea" stroke="#34A853" stroke-width="4"/>
+  <text x="820" y="430" font-size="44" font-weight="700" text-anchor="middle">Method</text>
+  <text x="820" y="490" font-size="28" text-anchor="middle">assets/figure.svg</text>
+  <rect x="1100" y="250" width="420" height="400" rx="40" fill="#fce8e6" stroke="#EA4335" stroke-width="4"/>
+  <text x="1310" y="430" font-size="44" font-weight="700" text-anchor="middle">Outcome</text>
+  <path d="M545 450 L600 450 M1035 450 L1090 450" stroke="#5f6368" stroke-width="6" stroke-linecap="round"/>
+</svg>

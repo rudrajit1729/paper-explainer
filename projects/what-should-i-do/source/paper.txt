@@ -1,0 +1,888 @@
+   “What Should I Do?” Guidelines for Responsibly
+       Integrating AI in Software Engineering
+ Rudrajit Choudhuri∗ , Fatima A. Moussaoui∗ , Carmen Badea† , Christian Bird† , Jenna L. Butler† , Brian Houck‡ ,
+                                      Margaret Burnett∗ , Anita Sarma∗
+                                           ∗ Oregon State University, Corvallis, OR, USA
+
+                       {choudhru, moussaof, anita.sarma}@oregonstate.edu, burnett@eecs.oregonstate.edu
+         † Microsoft, Redmond, WA, USA, {cabadea, cbird, jennbu}@microsoft.com      ‡ DX, brian.houck@getdx.com
+
+
+
+   Abstract—Speculations abound about the “right” ways for       Documentation assumes that someone vetted what it says;
+developers to integrate AI into their software engineering (SE)  agents now write much of it, often merged with little human
+work, but the evidence that exists is sparse and contradictory. Yet,
+                                                                 review [5]. As these signals weaken, the effort AI appears
+developers are held responsible for the products they ship with
+                                                                 to save in code generation shifts downstream [6], which
+(or without) AI’s help, so they need to integrate AI in responsible
+ways. To address this gap, we conducted a two-phase, large-scale may strain developers’ well-being [7], without delivering the
+investigation with 1,118 developers at Microsoft, GitHub, and    expected productivity gains [8].
+Pﬁzer. In Phase 1, we surveyed 860 developers at Microsoft          When AI entered consumer products, the ﬁeld responded
+on where they sought and resisted AI support in their daily      with guidelines for how AI systems should be designed to
+work, and from their accounts, synthesized 35 developer-facing
+guidelines: 29 across ﬁve categories of SE work and 6 cross-     interact with their users [9, 10]. Developers now stand on the
+cutting ones. A year later, as AI capabilities and developers’   other side of that relationship, deciding how to integrate AI
+experiences co-evolved, we validated them in Phase 2 with 258    responsibly into their own work. Speculation about the “right”
+developers in technology (Microsoft, GitHub) and biopharma-      ways abounds, but no shared guidance, drawn from developers
+ceutical (Pﬁzer) domains. Developers in our study found the      in the trenches for other developers in the trenches, says where
+guidelines clearly worded (92%) and relevant to their work
+(91%), and most wanted to adopt them in their own work (89%).    AI should help in software engineering (SE), where it should
+We also report how developers described operationalizing these   stay out, and what developers should demand of such tools.
+guidelines in practice: using AI to reﬁne their craft and delegate  In this paper, we synthesize what 860 developers at Mi-
+veriﬁable work, while keeping judgment and accountability for    crosoft, a frontier technology company whose developers both
+themselves. For relationship-centric work, endorsement varied
+                                                                 build and use AI, had worked out into guidelines for respon-
+with developers’ domain and their SE and AI experience. Overall,
+we offer concrete advice from in-the-trenches developers to      sibly integrating AI into software work. In 2025, we asked
+other in-the-trenches developers, and a shared vocabulary that   these developers to describe where they sought and resisted
+engineering teams can adopt to integrate AI well in their work.  AI across SE tasks (see Table I), and from their accounts,
+                                                                 we synthesized 35 guidelines: 29 across different categories
+                      I. I NTRODUCTION                           of SE work, alongside 6 cross-cutting ones that apply across
+   Software developers have never had more help, and less categories. A year later, as AI capabilities and developers’
+certainty about how to use it, at the same time. AI tools have experiences co-evolved, we validated the guidelines beyond
+gone from completing a line of code to writing whole features, the domain they came from, with 258 developers at Microsoft,
+reviewing pull requests, and drafting messages to customers, its subsidiary GitHub, and Pﬁzer, a company in a regulated bio-
+and most developers now use them routinely at work [1].          pharmaceutical domain, who rated each guideline on its clarity,
+   Each new release brings the same question back in a new its relevance to their own work, and whether they wanted to
+form: how much of my daily work should I hand to AI, and adopt it, and described how they would operationalize it in
+what must I still own? Most developers are left to decide this practice. We waited a year on purpose, a considerable period
+on their own, and with uneven results—even within one team, given how rapidly AI tools are advancing, to test whether the
+some developers have worked out what to hand off and where guidelines remained durable as the mechanics of developers’
+AI cannot help, while others struggle to see where it applies at day-to-day work changed, on the premise that what developers
+all [2]. Yet whatever AI contributes, developers must remain fundamentally do at work (e.g., software development, design,
+accountable for the result, so how they answer that question infra & ops, and quality assurance) endures far longer.
+shapes the quality of what they ship and their standing with        Overall, the main contribution of this paper is a set of
+the people who rely on their work.                               developer-facing guidelines for responsibly integrating AI into
+   Moreover, AI strains practices that teams built over decades, daily SE work, validated across companies and domains,
+practices that assumed a person did the work and served as and reported alongside the practices developers described for
+signals of good work. Code review, for example, assumes operationalizing each one. The guidelines can give engineering
+that authors understand what they contributed; with AI-written teams a shared vocabulary for deciding where AI belongs in
+code, reviewers face more contributions than they can absorb, their context and how to use it with more certainty, all while
+from authors who may not fully understand them [3, 4]. remaining responsible for what they ship.
+                    II. R ELATED W ORK                            trustworthy AI, setting out seven requirements, such as human
+                                                                  agency and oversight, transparency, and accountability, for
+   As AI tools enter development workﬂows, SE research has those who develop and deploy AI systems [38].
+examined how developers use them [11, 12], what drives their         Still, none of this research tells software developers how
+adoption [13, 14, 15, 16], and what they cost [7, 8]. Literature to integrate AI responsibly into their own work. Our work
+reviews catalog a fast-growing range of SE tasks that AI tools ﬁlls this gap with empirically grounded guidelines, synthesized
+now support [17, 18], and early industry accounts described from the accounts of hundreds of developers about their daily
+the opportunities of AI pair programmers [12]. Large-scale sur- work and validated across companies and domains.
+veys followed, documenting successes and recurring usability
+challenges of AI tools [11], while controlled and ﬁeld studies                             III. M ETHOD
+measured their effects on productivity [19, 20, 21].
+                                                                     Our goal was to derive guidelines that help developers
+   Capability alone, however, does not explain adoption. Russo responsibly integrate AI into their daily work. To do so, we
+[13] found that compatibility with developers’ existing work- conducted a two-phase investigation following the approach of
+ﬂows drove early AI adoption, and Lambiase et al. [14] Amershi et al.’s guidelines for human–AI interaction [9]. In
+showed that individual factors shape adoption differently Phase 1, we synthesized our guidelines from 860 developers
+across SE tasks. Trust, shaped by both the tool and the at Microsoft on where, why, and how they wanted AI support
+developer, further governs whether developers rely on AI’s in their work (Sec. III-A). In Phase 2, we validated them
+output [22, 23, 24, 15, 16]. Individual and team factors also with an independent sample of 258 developers at Microsoft,
+drive how much developers use these tools [2], just as peer GitHub, and Pﬁzer, spanning technology and biopharmaceu-
+inﬂuence has been shown to spread the adoption of other tical domains (Sec. III-B). Because integration is learned in
+developer tools [25, 26].                                         practice, we used developers’ accounts of their own work to
+   More recently, task-level studies found that developers tend ground these guidelines empirically.
+to want AI for repetitive work such as testing and documen-
+tation but are less receptive to it in collaborative and creative A. Phase 1: Synthesizing the Guidelines
+work [27, 28, 14, 29]. In our prior work, developers sought          1) Source survey: We collected the Phase 1 data in our
+AI support to reduce toil and amplify their craft, and limited 2025 AI Where It Matters survey, designed to characterize
+it in identity-deﬁning and relationship-centric work [30]. Our developers’ experiences and their openness to and use of AI,
+subsequent investigation identiﬁed where and why developers reported in [30], and to synthesize guidelines for responsibly
+draw the line on AI autonomy [31], the AI systems they integrating AI into their work, which is the focus of this paper.
+want built next, and the constraints that make such systems          The survey invited 8,000 developers across product groups,
+acceptable in practice [6].                                       roles, and geographies, and ultimately received 1,193 re-
+   Other research has investigated the costs of integrating sponses (a 14.9% response rate, consistent with prior SE
+AI poorly. When AI output drifts from developers’ goals, surveys [39, 40]), of which 860 were valid (details in [30]). In
+it costs them effort to prompt, verify, and modify it, with summary, the survey spanned 20 SE tasks in ﬁve categories
+consequences for their trust and adoption [16, 11]. Some from a grounded taxonomy of developers’ work (Table I).
+AI-generated work that appears to save costs simply pushes Participants selected up to three categories that best reﬂected
+them downstream: generating code faster moves the burden their work. To reduce fatigue, the meta-work category, which
+onto review, documentation, and maintenance [6, 3, 4], which applies to all developers, was shown only to those who selected
+may eventually strain developers’ well-being [7] and erode the two. In each category, participants answered Likert-scale items
+promised productivity gains [8].                                  on their experiences across its tasks and their openness to
+   To help address problems arising from the inﬂux of AI into and use of AI support [30], followed by two open-ended
+software, guidelines have begun to emerge. For example, to questions: Thinking about how to integrate AI into your work
+address problems in user-facing aspects of AI, Amershi et al. responsibly...
+[9] synthesized 18 guidelines for human–AI interaction from         1) Integration: “...where do you want AI to play the biggest
+more than 150 design recommendations and validated them                 role in [category] activities?”
+with design practitioners. Weisz et al. [10] articulated user-      2) Resistance: “...what aspects do you not want AI to handle
+experience (UX) design principles for generative AI applica-            in [category] activities and why?”
+tions, and Liao and Sundar [32] examined how systems should          The 860 participants provided 2,580 responses to these
+communicate their trustworthiness.                                questions: Development (816), Design & Planning (548),
+   Guidelines for ethically responsible AI have also emerged Meta-work (532), Quality & Risk (401), and Infrastructure &
+in industry guidebooks and principles [33, 34, 35] and in Operations (283). Note that we intentionally left responsibly
+patterns that operationalize it for teams that engineer AI sys- integrating AI broad, leaving it to the individual respondents
+tems [36]. Similar guidelines have also emerged for empirical to interpret it according to their own professional values.
+SE research involving AI-integrated systems [37]. Beyond             2) Data analysis: To derive the guidelines, we analyzed
+individual products and practices, the European Commission’s participants’ open-ended responses using reﬂexive thematic
+High-Level Expert Group on AI issued ethics guidelines for analysis [41, 42]. Four authors took part in this process,
+        TABLE I: Grounded taxonomy of SE tasks [30]                               Participants ﬁrst reported their SE experience, AI experi-
+Category          Tasks
+                                                                               ence, and, optionally, gender. They then selected the kinds
+                                                                               of work they had focused on in the last three months, using
+Development      Coding/Programming; Bug Fixing/Debugging; Performance
+(DV)             Optimization; Refactoring & Maintenance/Updates;              the Phase 1 categories, and rated each guideline in up to
+                 AI Feature Development                                        three selected categories, plus the cross-cutting ones, on three
+Design &         System Design; Requirements Engineering; Project Planning &
+Planning (DP)    Management
+                                                                               statements:
+Quality & Risk   Testing & Quality Assurance; Code Review/Pull Requests;          • Clarity: “This is clearly worded”;
+(QR)             Security & Compliance                                            • Relevance: “This applies to my work”;
+Infrastructure & DevOps (CI/CD); Environment Setup & Maintenance;
+Ops (IO)         Infrastructure Monitoring; Customer Support                      • Adoption: “I want to adopt this in my work”.
+Meta-work (MW) Documentation; Stakeholder Communication; Mentoring &           To mitigate ordering effects, we randomized the order of the
+                 Onboarding; Learning; Research & Brainstorming                guidelines within each block. We instructed participants to
+                                                                               rate each guideline such that agreement meant they agreed
+comparing and contrasting codes over multiple meetings and                     with every part of it. Relevance and adoption also offered
+resolving differences through negotiated agreement [43, 44].                   an Unsure option so undecided participants were not forced
+The unit of analysis was one participants responses to both                    to choose; we report Unsure responses (6% of all ratings)
+questions in one category, and these responses could receive                   in the supplement [45]. We did not offer the Unsure option
+multiple codes. In the AI Where It Matters study [30], we                      for clarity, since participants could directly judge whether a
+had already mapped each response to the tasks it addressed.                    guideline was clearly worded. Each block also included two
+During this current paper’s analysis, two authors inductively                  optional open-ended questions, which we used to analyze how
+coded the responses to both questions for each task, this                      participants operationalized the guidelines in their own work:
+time to derive guidelines, and the team reﬁned the codes into                  an application question (“How would you actually use one of
+themes of where developers wanted to integrate or resist AI                    these in [category] work?”) and a reﬂection question (“Is there
+in their work, yielding 105 task-level guidelines (typed as                    anything else you’d like to share about the ways of using AI
+I NTEGRATION/R ESISTANCE). Finally, we grouped task-level                      in [category] work you rated above?”).
+guidelines that shared the same essence into 29 guidelines                        We piloted the survey with 25 developers at Microsoft.
+across the ﬁve task categories, and those that recurred across                 Based on their feedback, we replaced an originally planned
+categories into 6 cross-cutting guidelines. The supplement                     ﬁve-point scale with Yes/No/Unsure options to reduce cogni-
+links each guideline to its task-level guidelines [45].                        tive burden, which also gave a clear decision on each guideline.
+                                                                               Both surveys appear in the supplement [45].
+   These guidelines take three forms. Use-and-demand guide-
+                                                                                  2) Participants: We administered our survey in Qualtrics.
+lines pair a use of AI with what developers said they demand
+                                                                               At Microsoft, we invited 4,000 developers over email, sam-
+of it in that use (“Use AI to . . . ; demand AI to . . . ”). Limit-
+                                                                               pled uniformly at random across product groups, experience,
+or-prohibit guidelines name where developers said AI’s role
+                                                                               domains, and geographies, excluding Phase 1 participants. We
+in that category should be limited or prohibited (“Limit AI’s
+                                                                               sent one reminder after a week and received 332 responses (an
+role in . . . ”, “Prohibit AI from . . . ”). Cross-cutting guidelines
+                                                                               8.3% response rate). To comply with organizational require-
+contain developers’ demands that apply across all categories,
+                                                                               ments, we sent a single survey link that reached both Microsoft
+alongside the category-level guidelines (“Demand AI to . . . ”).
+                                                                               and its subsidiary GitHub, so we cannot separate their partic-
+   Expert review. Before Phase 2 validation, we sent the guide-
+                                                                               ipants and hereafter refer to both as Microsoft. Beyond Mi-
+lines to 12 experienced software developers and 5 empirical
+                                                                               crosoft, we reached out to ﬁve other companies across different
+SE researchers outside the research team, with an average of
+                                                                               domains, and Pﬁzer agreed to participate. At Pﬁzer, we worked
+10 years of industry experience. From their feedback, we made
+                                                                               with an engineering leader to distribute the survey internally,
+minor wording revisions and also included example scenarios
+                                                                               who then cascaded it to team members; for this reason, we
+for each guideline, grounded in its task-level origins, and
+                                                                               cannot report a response rate. Participation was voluntary and
+offered them on demand through info-icons as part of the
+                                                                               anonymous in all cases, and the survey remained open from
+Phase 2 survey (see supplement [45]).
+                                                                               August to September 2026; the institutional review boards at
+                                                                               Microsoft and Oregon State University approved our study.
+B. Phase 2: Validating the Guidelines
+                                                                                  Of the 406 responses (332 at Microsoft and 74 at Pﬁzer),
+   1) Survey design: To validate the guidelines synthesized                    we excluded those that rated no guidelines (MS: 93; PF: 30)
+in Phase 1, we surveyed an independent sample of developers                    or had implausibly fast completion times (MS: 22; PF: 3). We
+within and outside the technology domain. The Phase 2 survey                   retained 258 participants, 217 at Microsoft (MS1–MS217) and
+followed the same structure as Phase 1, with two deliberate                    41 at Pﬁzer (PF1–PF41). Participants spanned a wide range of
+choices in ﬁelding it. First, we waited a year to test whether                 SE and AI experience. Most self-identiﬁed as men (85%) and
+the guidelines remained durable as AI tools and developers’                    rated themselves as highly experienced with AI tools (60%).
+practices evolved. Second, we deployed it in more than one                     Participant demographics are provided in the supplement [45].
+domain, at Microsoft (& GitHub) and at Pﬁzer, to test whether                     3) Analysis of ratings: For each guideline and statement,
+the guidelines applied beyond the technology domain.                           we report the percentage of agreement (Yes among Yes and No
+responses), with 95% Wilson score intervals in the supplement;      A response received a code when at least two of the three
+category-level and overall percentages pool the ratings in each     model coders assigned it. As a ﬁnal validation, two authors
+category and across all guidelines. We retained all guidelines,     independently coded a representative sample of 70 responses
+as a majority of participants found each clear and relevant and     (∼10%); human-council agreement was Cohen’s κ = 0.81.
+wanted to adopt it. We mark 70% on each bar in Table II, a
+commonly accepted level of consensus [46], and star (⋆ ) the        C. Threats to Validity
+guidelines whose adoption fell below it.                               As with any empirical investigation, ours had threats to
+   Domain comparisons (Microsoft vs. Pﬁzer; Benjamini–              validity. Our sample may not be representative, in part because
+Hochberg-corrected Fisher’s exact tests; see [45]) showed           some organizations did not want to publicly discuss their
+no statistically signiﬁcant difference. We thus report domain       practices. Of the ﬁve companies beyond Microsoft and GitHub
+differences descriptively where relevant, in percentage points.     we approached, only Pﬁzer agreed to participate. Self-selection
+   4) Analysis of open-ended responses: We analyzed 726             bias is also a possible threat, in that developers in our study
+responses from the 168 participants who answered the open-          may hold stronger views about AI and thus might have been
+ended questions to understand how they would operational-           more motivated to participate. Also, developers may have
+ize each guideline, to explain their ratings, and to identify       endorsed guidelines they would not sustain using in their daily
+misreadings. Because responses addressed speciﬁc guidelines,        work.
+each guideline needed its own codebook. To code consistently           Accuracy of our data also depends on our qualitative
+across them, we used a human-in-the-loop, multi-model AI            analysis accurately representing participants’ experiences. The
+council procedure following our prior work [6], guided by           guidelines are our synthesis of participants’ accounts, but other
+reﬂexive thematic analysis [41, 47]. The models performed           researchers might group the same accounts differently. Our
+bounded, auditable operations, and we retained interpretive         mitigations were grounding every task-level guideline in partic-
+authority [48]. Speciﬁcally, we decided what each theme             ipants’ responses, resolving disagreements through negotiated
+meant and which interpretations entered the analysis, and every     agreement, having experts review the guidelines, and validat-
+theme and coding decision remained traceable to participants’       ing them with an independent sample of developers across
+verbatim responses.                                                 companies and domains. Our use of AI to scale Phase 2’s
+   To build the codebooks, we ﬁrst had three models from            analysis may also have introduced inaccuracies. To mitigate
+distinct provider families, Claude Opus 5.5 (Anthropic), GPT-       this threat, we reserved all interpretive judgments for ourselves:
+5.6 (OpenAI), and Gemini Flash 5.7 (Google), independently          we had three model families propose themes independently,
+discover candidate themes for each guideline operationaliza-        each traced to participant IDs and verbatim excerpts; two
+tion, with the participant IDs and verbatim excerpts that           authors then reviewed every theme against its cited responses,
+supported them; using distinct model families reduces the risk      ﬁnalized the codebooks, reviewed the rationale models gave
+that one model family’s biases or failure modes dominate [49].      for their code assignments, and checked the council’s coding
+Each model analyzed the responses through different lenses:         against their own coded sample. We also present verbatim
+semantic (what participants said), latent (the division of labor    quotes throughout the paper to let readers judge for themselves
+between the developer and AI that a response implied), and          whether participants said what the themes capture.
+contrastive (the conditions under which participants would             Finally, our investigation included data from only three com-
+(not) use AI as a guideline describes).                             panies (Microsoft, its subsidiary GitHub, and Pﬁzer), so we
+   We then used GPT-5.6 to reconcile the candidates into one        do not claim to represent all developers. Instead, we offer our
+codebook per guideline, with a deﬁnition and inclusion and          guidelines as a validated starting point for engineering teams
+exclusion criteria for each code; one model sufﬁced because         to decide what is relevant to their context. The guidelines’
+three had independently surfaced them.                              relevance and adoption may differ in smaller organizations,
+   Two authors reviewed every candidate theme against all           open-source settings, or more strongly regulated domains. To
+its cited responses, assessing its ﬁdelity to what participants     support replication in other contexts, we have made our survey
+described, its grounding in those responses, and its distinctness   instruments available [45].
+for systematic coding. Through negotiated agreement, we
+dropped weakly substantiated themes, merged similar ones,                                    IV. R ESULTS
+and split those that combined different operationalizations.
+   After ﬁnalizing the codebooks, we used three new model              Overall, developers in our study strongly endorsed the
+instances (Claude Opus 5.5, GPT-5.6, and Gemini Flash 5.7)          guidelines: they found them clearly worded (Clarity 92%), rel-
+to code every response independently. Each model gave a             evant to their SE work (Relevance 91%), and worth adopting
+rationale before assigning a code [50], leaving a traceable         (Adoption 89%), and frequently described them as practices
+link between each response and its codes for human review.          they were already working toward. Table II reports these guide-
+We disallowed the models from introducing new codes at this         lines (29 across ﬁve SE task categories and 6 cross-cutting
+point to prevent code drift. Agreement among the three model        ones), with participants clarity, relevance, and adoption ratings
+coders was high (mean Krippendorff’s α = 0.92; per-category         of each and the ways they operationalized these guidelines in
+medians 0.89–1.00 [51]), which indicates coding consistency.        their daily work.
+TABLE II: (a) Guidelines for responsibly integrating AI in SE work, with Clarity, Relevance, and Adoption ratings by our
+study’s developers, and ways they described operationalizing each guideline. (N : Phase 1 participants whose responses the
+category’s guidelines were synthesized from; n: Phase 2 participants who rated them). Unsure responses (6% of all ratings)
+are reported in the supplement [45]. Lighter bars: below the 70% threshold (vertical line); ⋆ guidelines: adoption below 70%.
+                                     Guideline                                                        C/R/A              How participants described operationalizing it in practice
+                                                                                                          (% Yes)
+
+                                     DV1: U SE AI to automate routine, veriﬁable development          C             96   Automate recurring upkeep such as log parsing, CI, and data updates; Delegate
+                                                                                                      R             98
+                                     tasks under human oversight; DEMAND AI to produce                A             97   mechanical refactors that you dictate and can verify; Encode repeated work as checked-in
+                                     reviewable steps and plan of action.                                                skills, instructions, or custom agents; Orchestrate specialized agents that hand off work
+                                                                                                                         and request clariﬁcation; Have AI reﬁne plans before authorizing implementation; Have
+                                                                                                                         AI give pull requests a ﬁrst review while retaining human approval
+                                     DV2: U SE AI to ﬁnd and synthesize context from multiple         C             91   Correlate dashboards, logs, and incidents to guide engineering decisions; Trace change
+                                                                                                      R             97
+
+
+
+
+Development N = 816, n = 226
+                                     sources to make changes with expected trade-offs; DEMAND         A             95   impacts across repositories and related applications; Maintain indexed project context that
+                                     AI to follow standards and disclose scope and assumptions.                          agents can draw on; Constrain agents with documented rules and responsibility
+                                                                                                                         boundaries; Compare design options with AI, then choose the direction yourself; Make AI
+                                                                                                                         state scope, assumptions, and conﬁdence explicitly
+                                     DV3: U SE AI to make sense of unfamiliar project context and     C             98   Navigate unfamiliar code with AI before changing it; Demand explicit sources for every
+                                                                                                      R             98
+                                     diagnose problems; DEMAND AI to provide traceable,               A             98   AI claim; Have AI investigate incidents and locate affected code paths; Condense dense
+                                     source-linked explanations and recommendations.                                     documentation into usable explanations; Create and maintain AI-written explainer
+                                                                                                                         documents for complex systems; Ask AI to pinpoint logic ﬂaws and error-handling
+                                                                                                                         problems
+                                     DV4: U SE AI to create changes in human-reviewable               C             92   Break large changes into small increments and verify each one; Let AI diagnose and
+                                                                                                      R             98
+                                     increments; DEMAND AI to hold consequential changes for          A             94   propose changes in small, reviewable steps, and verify its sources and assumptions;
+                                     human sign-off before applying them.                                                Review generated code continuously and redirect the agent during implementation; Let AI
+                                                                                                                         reach a draft pull request before intervening; Run an independent review agent before
+                                                                                                                         humans inspect the pull request; Block consequential actions until a human
+                                                                                                                         explicitly approves them
+                                     DV5: U SE AI as a coach for skill building; DEMAND AI to         C             94   Learn by solving real tasks with AI; Talk through ideas with AI as a pair-programming
+                                                                                                      R             89
+                                     provide clear explanations and uncertainty indicators.           A             88   partner; Use AI coaching to prepare junior developers
+                                     DV6: P ROHIBIT AI from making or ﬁnalizing security- and         C             90   Reserve ﬁnal security- and performance-critical decisions for human sign-off, and
+                                                                                                      R             91
+                                     performance-critical development decisions.                      A             84   approve sensitive changes personally
+
+                                     DP1: U SE AI to ﬁnd and synthesize information from              C             96   Consolidate internal project sources before planning or designing; Research prior
+                                                                                                      R             94
+                                     different sources with clear source attribution; DEMAND AI to    A             95   solutions and other teams’ practices before designing; Demand that AI link its ﬁndings to
+                                     surface historical context and inconsistencies for                                  speciﬁc sources so humans can verify them; Have AI summarize requirements
+                                     human review.                                                                       after client meetings
+
+                                     DP2: U SE AI to explore contextually grounded design and         C             93   Brainstorm architecture ideas with AI before development starts; Generate several design
+                                                                                                      R             95
+
+
+
+
+Design & Planning N = 548, n = 158
+                                     architecture alternatives with expected trade-off and impact     A             95   options with trade-offs, then choose among them; Have AI draft the design, then reﬁne it
+                                     analysis; DEMAND AI to maintain provenance of                                       with expert review; Have AI critique a draft design for gaps, unstated assumptions,
+                                     design decisions.                                                                   and corner cases
+
+                                     DP3: U SE AI to convert reviewed designs into downstream         C             94   Generate work items and implementation plans from approved designs; Draft
+                                                                                                      R             92
+                                     artifacts; DEMAND AI to make every artifact traceable to its     A             94   review-ready speciﬁcations and design documents from requirements; Approve designs
+                                     reviewed sources.                                                                   before AI converts them into downstream artifacts; Keep generated artifacts linked to
+                                                                                                                         source designs across teams and time
+                                     DP4: U SE AI to inform task plans, schedules, and resource       C             92   Set constraints, let AI draft the plan, then review and edit it; Run project management
+                                                                                                      R             78
+                                     assignments fairly to ﬁt the project’s context and people’s      A             79   with AI across the full delivery cycle; Gate implementation on plan conﬁdence
+                                     interests and skills; DEMAND AI to disclose its assumptions                         or human review
+                                     and uncertainty explicitly.
+                                     DP5: U SE AI to automate routine work-item creation and          C             94   Automate work items, status updates, and board bookkeeping; Track status, next steps,
+                                                                                                      R             95
+                                     updates (e.g., status reports); DEMAND AI to keep every          A             92   blockers, reminders, and rollout gates
+                                     change easy to review and undo.
+                                     DP6: P ROHIBIT AI from making or ﬁnalizing consequential         C             90   Have AI surface assumptions and rejected alternatives for conﬁrmation before proceeding;
+                                                                                                      R             92
+                                     design and planning decisions, such as inferring unstated        A             84   Keep ﬁnal design and planning decisions behind human sign-off
+                                     requirements, deciding on architecture or business logic, or
+                                     automatically assigning tasks.
+                                     DP7: L IMIT AI’s role in strategic vision setting, stakeholder   C             85   Bring AI in to manage the work only after people have set the strategic direction and
+                                                                                                      R             71
+                                     alignment, and human-relational work.                            A             71   decided what to build
+
+                                     QR1: U SE AI for continuous, proactive QA that understands       C             91   Continuously scan code, telemetry, and releases to catch emerging risks; Demand that AI
+
+
+
+
+Quality & Risk N = 401, n = 128
+                                                                                                      R             92
+                                     the project’s context; DEMAND AI to surface ﬁndings ranked       A             94   rank its ﬁndings by risk to focus limited review effort; Investigate logs and failures with
+                                     by risk, linked to evidence, and paired with reviewable                             AI to reproduce issues and propose ﬁxes; Demand evidence and citations behind every AI
+                                     ﬁx guidance.                                                                        quality ﬁnding; Assess testing gaps from code, change, and coverage data; Use AI during
+                                                                                                                         pull-request review to ﬂag risks and gaps
+                                     QR2: U SE AI to automate routine QA and compliance tasks;        C             86   Automate recurring compliance checks, alerts, and result routing; Assign neglected QA
+                                                                                                      R             88
+                                     DEMAND AI to provide uncertainty indicators on every output.     A             90   backlogs to AI when teams lack capacity; Run end-to-end tests through browser
+                                                                                                                         automation and test infrastructure; Have AI write tests while developers
+                                                                                                                         retain testing ownership
+                                     QR3: L IMIT AI’s handling of personally identiﬁable and          C             89   Make clear which data and tools AI may use, and scope its access to sensitive data
+                                                                                                      R             67
+                                     sensitive compliance data to least-privilege access.             A             79
+                                     QR4: P ROHIBIT AI from self-certifying the correctness or        C             89   Gate AI output with deterministic tests; Use automated builds to catch false claims in AI’s
+                                                                                                      R             91
+                                     quality of its own output.                                       A             83   reports of success; Check that AI-written tests exercise the intended behavior; Use a
+                                                                                                                         separate agent as a reviewer to check AI’s contributions; Keep approval of AI ﬁndings,
+                                                                                                                         ﬁxes, and commits with a human
+                                                                 TABLE II: (b) Guidelines for responsibly integrating AI in SE work (continued).
+                                       Guideline                                                      C/R/A              How participants described operationalizing it in practice
+                                                                                                          (% Yes)
+
+                                       IO1: U SE AI for continuous, telemetry-driven DevOps           C             93   Continuously monitor telemetry for anomalies and emerging failures; Correlate logs and
+
+
+
+
+Infrastructure & Ops N = 283, n = 84
+                                                                                                      R             90
+                                       monitoring, analysis, and release-readiness assessment;        A             96   telemetry to diagnose incidents and surface likely causes; Triage every incoming incident
+                                       DEMAND AI to provide review-ready summaries and                                   before human handling; Watch deployments and releases through completion; Triage
+                                       pre-incident warnings.                                                            failed tests and assess release quality; Report patterns and trends across support incidents
+
+                                       IO2: U SE AI to generate Infrastructure-as-Code and            C             93   Generate infrastructure-as-code from high-level intent; Demand a reviewable diff or plan
+                                                                                                      R             89
+                                       conﬁguration workﬂows from intent; DEMAND AI to provide        A             94   before infrastructure changes run; Build and maintain CI/CD pipelines
+                                       a human-readable diff before executing changes.                                   from stated requirements
+
+                                       IO3: U SE AI to automate routine operations tasks; DEMAND      C             92   Draft remediation steps, ﬁxes, and runbooks for engineers; Convert remaining manual
+                                                                                                      R             96
+                                       AI to provide uncertainty indicators and clear, traceable      A             97   operations into supervised scripts and workﬂows; Wire SRE agents to incident triggers,
+                                       explanations on every recommendation.                                             telemetry, and scoped action tools; Require reviewable summaries, conﬁdence, and
+                                                                                                                         explanations before letting AI make production changes
+                                       IO4: P ROHIBIT AI from modifying production environments,      C             92   Fence AI with ﬁrewalls, sandboxes, and identity controls while it helps run infrastructure;
+                                                                                                      R             91
+                                       critical infrastructure, security conﬁgurations, or access     A             86   Hold consequential environment changes for human approval or execution
+                                       controls on its own.
+                                       IO5: P ROHIBIT AI from autonomously communicating with         C             88   Assign a person accountable for emergency decisions and messages sent under their name:
+                                                                                                      R             81
+                                       stakeholders or making emergency-response decisions.           A             84   route emergency decisions to a human, check messages before they are sent, and let
+                                                                                                                         agents report only routine release status
+
+                                       MW1: U SE AI to draft stakeholder communications adapted       C             89   Draft routine communication from material developers supply, and keep interpersonal
+                                                                                                      R             67
+                                       to each audience’s needs and intended call to action; DEMAND   A             71   messages their own: AI drafts newsletters from recent updates and summarizes them,
+                                       AI to provide drafts traceable to their source materials.                         while developers write to colleagues themselves
+
+                                       MW2⋆ : U SE AI to automate routine communication and           C             93   Track work and compile stakeholder updates from Azure DevOps and Teams; Draft
+                                                                                                      R             71
+                                       collaboration logistics; DEMAND AI to never dispatch           A             62   release notes and routine announcements from commits, then review before sending
+                                       consequential stakeholder-facing messages without approval.
+
+
+
+
+ Meta-work N = 532, n = 90
+                                       MW3: U SE AI to adapt learning to knowledge level and          C             83   Summarize and ﬁlter trusted learning resources around the learner’s question; Have AI
+                                                                                                      R             85
+                                       project needs; DEMAND AI to scaffold active, hands-on          A             87   explain each code line and write your own learning notes
+                                       practice and deliberate thinking.
+                                       MW4: U SE AI as a thought partner to challenge and reﬁne       C             94   Bring ideas to AI for questions, challenge, and reﬁnement; Set up dedicated AI projects
+                                                                                                      R             94
+                                       ideas; DEMAND AI to defer ﬁnal decisions to                    A             90   and personalize settings for thinking through ideas; Use AI to help ﬁnd/summarize
+                                       human judgment.                                                                   resources
+
+                                       MW5: U SE AI to curate, validate, and maintain                 C             96   Update and validate shared documentation as work evolves; Scan documentation against
+                                                                                                      R             93
+                                       documentation and shared project context; DEMAND AI to         A             94   code and changes to ﬂag drift
+                                       preserve ﬁdelity to its sources and ﬂag stale or conﬂicting
+                                       context for human review.
+                                       MW6: U SE AI to create personalized training plans and         C             94   Generate up-to-date training and onboarding materials: wiki pages for knowledge transfer,
+                                                                                                      R             77
+                                       materials for onboarding and learning new technologies;        A             78   guides to new AI tools adapted to the learner’s skill, and overviews of features owned
+                                       DEMAND AI to provide editable, source-linked drafts.                              by other teams
+
+                                       MW7⋆ : L IMIT AI’s role in mentoring to preserve mentor and    C             83   Keep mentoring and people decisions human: face-to-face time and whiteboarding with
+                                                                                                      R             64
+                                       mentee development and tacit knowledge transfer.               A             61   new hires, messages to colleagues written by people, and AI brought in afterward for
+                                                                                                                         implementation and checking
+
+                                       CC1: D EMAND AI to ask for clariﬁcation instead of acting on   C             97   Make AI ask before ambiguous work begins: instruct it to ask about intent or open
+                                                                                                      R             99
+                                       missing or inferred context.                                   A             98   choices rather than guess, surface unknowns and assumptions for conﬁrmation, and
+                                                                                                                         clarify feedback before acting on it
+                                       CC2: D EMAND AI to prefer simple, deliberate solutions over    C             94
+
+
+
+
+Cross-cutting N = 860, n = 190
+                                                                                                      R             98   Repeatedly trim unnecessarily complex code and verbose documentation; Choose the
+                                       superﬁcial ﬁxes or unnecessarily complex ones.                 A             94   leanest complete root-cause ﬁx; Pull AI back from over-broad changes; Expect AI to
+                                                                                                                         avoid unnecessary complexity without being told
+                                       CC3: D EMAND AI to safeguard the privacy and security of       C             93   Make AI apply security and privacy rules; Keep conﬁdential information outside the
+                                                                                                      R             91
+                                       the data it handles, exposing or retaining it only as the      A             93   repository so AI cannot access it
+                                       task requires.
+                                       CC4: D EMAND AI to back its claims with cited, veriﬁable       C             96   Cite speciﬁc code locations and source documents; State reasoning, assumptions,
+                                                                                                      R             99
+                                       evidence, and to clearly state its assumptions, reasoning,     A             99   uncertainty, and missing scenarios; Codify evidence checks as standing agent rules
+                                       scope, and uncertainty.
+                                       CC5: D EMAND AI to deliver its output in atomic,               C             93   Require AI to deliver atomic, reviewable changes; Decompose work yourself and verify
+                                                                                                      R             98
+                                       self-contained pieces a human can review.                      A             92   each step; Give AI a guide with examples people have checked for easy review; Review
+                                                                                                                         project plans against requirements and add notes about the whole plan; Split AI output
+                                                                                                                         into pieces so team members can share review
+                                       CC6: D EMAND AI to clearly annotate its generated              C             93   Mark AI’s contributions where reviewers see them: label AI-written review comments,
+                                                                                                      R             95
+                                       contributions and communications to distinguish them from      A             81   mark generated content as AI-generated and human-reviewed, and credit AI as co-author
+                                       human-authored content.                                                           on accepted code
+
+
+
+   Participants’ ratings did not differ signiﬁcantly between
+                                                         egories (R 95%, A 93%; Table II). Recall that these per-
+domains, so we report domain-level differences only wherecentages rate relevance and usefulness to participants’ own
+they were substantive, as for Meta-work (Sec. IV-E).     work (Relevance: “. . . applies to my work”; Adoption: “I want
+                                                         to adopt this in my work”). In the Development category,
+A. Development (N=816, n=226; C 94%, R 95%, A 93%)       Phase 1 participants (N=816) made three central demands for
+  The Development category drew Phase 2 participants’ responsibly integrating AI into their own work:
+(n=226) strongest endorsement among the ﬁve SE task cat-
+   (1) When AI helped participants understand code and of whether humans can effectively review AI contributions at
+context, that its assumptions and explanations be explicit their current scale (e.g., [52]). Some participants also pointed
+and traceable: Participants in both phases described using this out and suggested mitigations such as this one: “I have
+AI to understand unfamiliar code and diagnose problems, it do automated reviews with second models on PRs created,
+navigating unfamiliar code with AI before changing it and before my team has an opportunity to review” (MS126).
+condensing dense documentation into usable explanations, Whether this mitigation will be enough given the scale of
+while demanding explicit sources for every AI claim (DV3; this issue is still an open question.
+R 98%, A 98%): “I often need to tell AI ‘show me the source
+behind claim X’ [so] I know where to look in the code” B. Design & Planning (N=548, n=158; C 92%, R 89%, A
+(MS24).                                                           88%)
+   They further noted using AI to synthesize context from mul-       Phase 2 participants also strongly endorsed the Design &
+tiple sources before making changes, for example, correlating Planning guidelines (R 89%, A 88%), which at their core
+dashboards, logs, and incidents to guide engineering decisions, captured three demands that Phase 1 participants made of AI:
+while requiring AI to state scope, assumptions, and conﬁdence        (1) When AI helped participants research and explore
+explicitly (DV2; R 97%, A 95%): “. . . having AI synthesize designs, that its sources be attributed and design decisions
+context. . . and explain it with traceable, source-linked reason- keep their provenance: Participants described using AI to
+ing. . . disclose its assumptions and ﬂag uncertainty instead of consolidate internal project sources and research prior solu-
+sounding conﬁdent when it’s guessing” (MS45).                     tions and other teams’ practices before designing, while de-
+   This demand was also echoed when participants used AI for manding that AI link its ﬁndings to speciﬁc sources so humans
+skill building, where they would learn by solving real tasks can verify them (DP1; R 94%, A 95%). PF24 described how
+with AI or talk through ideas with AI as a pair-programming their team built this into its workﬂow: “We use AI to ingest
+partner, while demanding clear explanations and indicators information from multiple sources, and curate it. Every curated
+of its uncertainty (DV5; R 89%, A 88%): “It has been a claim links to one or more raw source documents”.
+great ‘sounding board’ for me to bounce ideas off of before          The same demand held when they would generate several
+committing to any given direction” (MS158).                       design options with trade-offs, then choose among them, and
+   (2) When AI did development work, that its contribu- have AI critique a draft design for gaps, unstated assumptions,
+tions arrive as plans and increments participants could and corner cases—always keeping the reasoning behind each
+effectively review: When AI implemented code changes or design decision explicit (DP2; R 95%, A 95%).
+automated routine development tasks, participants required it        (2) When AI turned approved designs into artifacts and
+to ﬁrst propose a plan of action they could review (DV1; work items, that each stay traceable to the design and easy
+R 98%, A 97%), and then to deliver its changes as self- to review: Using AI to generate work items and implementa-
+contained, atomic units that could each be reviewed on its own tion plans from approved designs and automate work items,
+(DV4; R 98%, A 94%). MS28 described the desired sequence status updates, and board bookkeeping, participants required
+as: “AI helps me to develop the software architecture. . . and artifacts to trace to their reviewed design (DP3; R 92%, A
+formulate an implementation plan. Once the plan is rock- 94%) such that each change would be easy to review and
+solid, I ask the AI to implement the code changes, and undo (DP5; R 95%, A 92%): “I use AI to generate . . . design
+then I verify the implementation”. Others kept AI’s changes documents, status updates. . . and implementation plans, while
+small, as in “automate routine changes in small, reviewable ensuring the outputs remain traceable and are reviewed by
+steps” (MS117).                                                   humans . . . ” (MS151).
+   (3) Before AI’s changes took effect, that consequential           (3) Throughout, that consequential design and planning
+decisions wait for human sign-off: Participants kept decisions retain human sign-off: Such decisions included
+consequential changes for their own approval (DV4) and inferring unstated requirements, deciding on architecture or
+wanted that approval enforced through “intentional human business logic, and assigning tasks (DP6; R 92%, A 84%).
+gates, enforced by actual governance tools (hooks, vs                A few, however, were reluctant to adopt DP6, wanting AI to
+prompts)” (MS179). They would also constrain agents with make more of these decisions: “Historically these functionary
+documented rules and responsibility boundaries (DV2), roles seemed like ‘leadership’ but with AI it’s starting to be
+for example, by “. . . injecting those rules into our agents the creative/authoring traits that help me excel, while logistical
+(including Azure best practices for instance)” (MS142).           decisions can be made by AI much better” (MS41).
+   Especially with security- and performance-critical work,          Notably, endorsement in this category was relatively lower
+participants chose to reserve ﬁnal security- and performance- for the two guidelines that centered on relationship-centric
+critical decisions for human sign-off (DV6; R 91%, A 84%): work: using AI to inform schedules and resource assignments
+“For. . . performance, sec[urity] decisions, it is good to brain- (DP4; R 78%, A 79%) and limiting AI’s role in strategic vision,
+storm with AI and ﬁgure out the options. . . and let the human stakeholder alignment, and human-relational work (DP7; R
+make the ﬁnal decisions” (MS110).                                 71%, A 71%), although a majority (>70%) still endorsed both.
+   The Development category guidelines’ emphasis on the              Breaking these differences down by participants’ demo-
+importance of reviewing AI contributions raises the question graphics, we found that senior developers in Phase 2 rated
+DP4 relatively less relevant to their work (71% vs. 85% of             (1) When AI monitored systems, that its summaries
+junior and mid-career developers). DP7, on the other hand,          be review-ready and state its conﬁdence: Participants were
+was slightly less relevant to junior and mid-career developers      especially keen to adopt continuous, telemetry-driven monitor-
+(70% vs. 72% of senior developers). Some of them noted that         ing (IO1; R 90%, A 96%), using AI to continuously monitor
+strategy and stakeholder alignment were not yet a big part          telemetry for anomalies and emerging failures and correlate
+of their daily work. Furthermore, participants with more AI         logs and telemetry to diagnose incidents and surface likely
+experience were less willing to adopt DP7 in their work (70%        causes, while demanding summaries they could effectively
+vs. 74.3% of those with low to moderate AI experience).             review, with AI’s conﬁdence clearly stated: “What it misses
+C. Quality & Risk (N=401, n=128; C 89%, R 84%, A 87%)               often  is the interpretation, so review-ready summaries with
+                                                                    conﬁdence level clearly described are very useful” (MS125).
+   Phase 2 participants broadly endorsed the Quality & Risk
+                                                                       (2) When AI changed infrastructure, that every change
+guidelines (R 84%, A 87%). The central theme of these
+                                                                    come with a human-readable diff or plan: Participants
+guidelines was what they demanded of AI as it extended
+                                                                    described using AI to generate infrastructure-as-code from
+testing and risk scanning beyond what their teams could check:
+                                                                    high-level intent and build and maintain CI/CD pipelines
+   (1) When AI scanned for risks at scale, that every ﬁnding
+                                                                    from requirements, while demanding a reviewable diff or plan
+be traceable to its evidence: Participants described using AI
+                                                                    before infrastructure changes run (IO2; R 89%, A 94%):
+to continuously scan code, telemetry, and releases to catch
+                                                                    “Using AI with infrastructure as code like Terraform is helpful,
+emerging risks and investigate logs and failures with AI to
+                                                                    basically acting as one level higher of the declarative intent for
+reproduce issues and propose ﬁxes, while demanding that AI
+                                                                    infra as code. . . It’s dangerous to blindly trust what it says. . . A
+rank its ﬁndings by risk to focus limited review effort and
+                                                                    real staging environment is crucial to validate these things”
+demanding evidence and citations behind every AI quality
+                                                                    (MS47).
+ﬁnding (QR1; R 92%, A 94%). MS8 described why this mat-
+                                                                       For routine operations, they would draft remediation steps,
+tered: “. . . we’ve already seen. . . hallucinated security reports
+                                                                    ﬁxes, and runbooks for engineers, while demanding prove-
+can overwhelm the systems’ ability to deal with them. . . there’s
+                                                                    nance and AI’s explanations before letting it make production
+an asymmetry where creating this stuff is vastly cheaper than
+                                                                    changes (IO3; R 96%, A 97%): “I’d use AI to analyze mon-
+verifying that it’s real”.
+                                                                    itoring data, summarize incidents, identify likely root causes,
+   Similarly, for routine QA and compliance, participants de-
+                                                                    and suggest remediation steps. . . Recommendations should be
+scribed automating recurring compliance checks, alerts, and
+                                                                    explainable, auditable, and require approval. . . ” (MS88).
+result routing and having AI write tests while developers
+                                                                       (3) In production and emergencies, that a human decide
+retain testing ownership, while demanding that AI indicate
+                                                                    and stay accountable: Participants gated AI from changing
+its uncertainty explicitly (QR2; R 88%, A 90%).
+                                                                    production on its own (IO4; R 91%, A 86%), holding conse-
+   (2) When AI handled sensitive data, that it be given
+                                                                    quential environment changes for human approval or execution
+least-privilege access: 67% of participants said limiting AI’s
+                                                                    and fencing AI with ﬁrewalls, sandboxes, and identity controls
+handling of personally identiﬁable and sensitive data was
+                                                                    while it helps run infrastructure. As MS3 put it: “I am already
+relevant to their work; still, a larger share (79%) wanted to
+                                                                    telling AI to help me build scripts which can run manual
+adopt it in their work (QR3). Participants further noted that
+                                                                    operations . . . on production systems. I don’t necessarily think
+team policies should make clear which data and tools AI
+                                                                    AI should be running these commands itself”.
+may use, and scope its access to sensitive data; e.g., “access
+                                                                       One participant, however, believed agents should be able to
+should be granted in expanding circles. . . start with a limited
+                                                                    ﬁx routine production issues: “We need a way to have agents
+scope. . . If not, expand the scope and repeat” (MS139).
+   (3) Before participants accepted AI’s output, that its with identities and access to prod resources while making
+work be veriﬁed independently: Participants strongly en- sure a human is still in control. . . ” (MS67).
+dorsed prohibiting AI from certifying its own output (QR4; R           In emergencies and high-stakes communication (IO5; R
+91%, A 83%), and would use a separate agent as a reviewer           81%,   A 84%), participants would assign a person accountable
+to check AI’s contributions: “subagents with clean context and      for  emergency    decisions and messages sent under their name,
+from different family of models to review the output of the         noting   that “a   computer cannot be held accountable; there-
+other to be more unbiased” (PF15). Echoing the Development          fore, a computer      should never make a management decision”
+category, some participants noted that AI-based veriﬁcation         (MS80).
+would need to grow alongside human review: “Humans are E. Meta-work (N=532, n=90; C 90%, R 79%, A 78%)
+not going to be able to keep up . . . The focus should be on
+                                                                       Phase 2 participants endorsed the Meta-work guidelines (R
+making good evals that can be used to gatekeep AI” (MS190).
+                                                                    79%, A 78%), though less uniformly than those in the other
+D. Infrastructure & Ops (N=283, n=84; C 91%, R 89%, A categories. This work spanned learning, thinking through ideas,
+92%)                                                                documentation, communication, and mentoring, and Phase 1
+   Phase 2 participants strongly endorsed the Infrastructure & participants’ demands of AI depended on whom the work
+Ops guidelines (R 89%, A 92%). Phase 1 participants required involved: the more it involved other people, the less they
+three core behaviors of AI in the operations lifecycle:             wanted AI acting on their behalf:
+   (1) When participants built knowledge for themselves,           Meta-work: 71% vs. 80%). Some drew the line at AI-written
+that AI scaffold active learning and leave the ﬁnal judg-          communication altogether: “Communications should be ﬁlled
+ment to them: Participants described using AI to adapt learn-      with intent and decisions. I don’t want to read AI-generated
+ing to their needs, summarizing and ﬁltering trusted learning      text, and I’ve noticed no one else reads it either” (PF20).
+resources around the learner’s question, while demanding
+active, hands-on practice and deliberate thinking (MW3; R          F. Cross-cutting (N=860, n=190; C 94%, R 97%, A 93%)
+85%, A 87%): “Always have AI explain outputs not only for
+                                                                      Overall, the cross-cutting guidelines drew the highest ratings
+validation but for learning purposes, making sure I understand
+                                                                   across all categories from Phase 2 participants (R 97%, A
+each line of code and writing notes for my own understanding,
+                                                                   93%). The essence of these guidelines, contributed by the
+separate from project goals” (PF23).
+                                                                   Phase 1 participants, lay in the conditions they placed on
+   With AI as a thought partner, they would bring ideas to
+                                                                   AI’s work in every category, in addition to the category-level
+AI for questions, challenge, and reﬁnement, while keeping the
+                                                                   ones described above. These demands followed AI’s work end-
+ﬁnal judgment for themselves (MW4; R 94%, A 90%): “I’ve
+                                                                   to-end. Finally, clearly annotating AI’s contributions, which
+used it to push back on my ideas. . . Sometimes it brings up
+                                                                   concerns who gets credit for the work, interestingly divided
+good points I didn’t think of before” (MS197).
+                                                                   participants.
+   (2) When participants communicated with others, that
+their voice stay their own and no consequential message               (1) Before AI acted, that it ask when in doubt instead of
+go out without their sign-off: A majority endorsed drafting        making assumptions: Participants would make AI ask before
+stakeholder communications traceable to their source material      ambiguous work begins (CC1; R 99%, A 98%), having it
+(MW1; R 67%, A 71%) and automating routine communica-              surface unknowns and assumptions for conﬁrmation ﬁrst: “I
+tion with sign-off on consequential messages (MW2; R 71%,          have a few sub agents/skills where I clearly state for the agent
+A 62%), although MW2’s adoption dipped below 70%. Those            to surface unknowns and assumptions. Then to get input from
+who adopted them would draft routine communication from            the user on those before performing any next steps” (MS14).
+material developers supply, and keep interpersonal messages           One participant offered nuance on deciding when to ask:
+their own and track work and compile stakeholder updates           “clariﬁcation should be risk-based . . . Excessive questions can
+from Azure DevOps and Teams: “Drafting documents for               interrupt work, while silent assumptions on consequential
+review is valuable...directly communicating without review is      decisions create unacceptable risk” (MS76).
+too risky and is liable to cause more problems than it solves”        (2) While AI worked, that it choose deliberate solutions
+(MS169).                                                           and protect data: Participants demanded that AI prefer simple
+   Those who were reluctant wanted to keep AI out of commu-        over unnecessarily complex solutions and deliberate ﬁxes
+nication entirely: “I don’t want AI to be my voice, my voice       over “band-aid” ones (CC2; R 98%, A 94%): “AI [tends]
+is part of what makes me who I am. . . Communication is a          to generate very complex, WORKING ﬁxes, that are BAD
+skill that if we ofﬂoad it we will not get better at it” (MS90).   because they diverge from the intended design” (MS7).
+Both guidelines were more relevant to participants with more          Some participants, meanwhile, cautioned that simplicity
+AI experience (74% vs. 62%). Some found value in handing           alone was not enough; a solution also had to be deliberate:
+routine communication, such as release notes and newsletters,      “I have seen plenty of simple, but wrong solutions. And
+to AI while retaining sign-off on it.                              sometimes the right solution requires complexity” (MS123).
+   (3) In mentoring, that humans remain the mentors:                  To protect data, they would make AI apply security and
+Participants described using AI to generate up-to-date training    privacy rules or keep conﬁdential information outside the
+and onboarding materials (MW6; R 77%, A 78%) while                 repository so AI cannot access it (CC3; R 91%, A 93%): “I
+limiting AI’s role in mentoring (MW7; R 64%, A 61%).               have to direct AI to honor security best practices. If AI knew
+Interestingly, MW7 drew more reluctance than we expected:          and applied these rules, that would be a huge advancement”
+about a third of participants did not endorse it, reﬂecting        (MS111).
+that mentoring rests more on individual choice and each               (3) When AI handed back work, that its claims carry
+participant’s principles about AI. Those who wanted to adopt it    evidence and its output be in self-contained, human-
+would keep mentoring and people decisions human: “When I           reviewable units: Participants demanded that AI cite code
+mentored a new hire, it was helpful to the mentee to have face-    locations and source documents and state reasoning, assump-
+to-face time and whiteboarding sessions, then later use the AI     tions, uncertainty, and missing scenarios (CC4; R 99%, A
+for implementation and extra layer for checking” (MS155).          99%): “One of [my] largest frustrations. . . constantly having to
+Moreover, juniors found MW7 more relevant than seniors             remind [AI] to [base its work] on the actual sources” (MS200).
+(85% vs. 76%), noting the value of the human element in               They also required AI to deliver atomic, reviewable changes
+mentoring.                                                         (CC5; R 98%, A 92%): “I try to decompose my tasks into
+   The Meta-work category also showed a difference between         digestible atomic chunks to maximize the context for the AI
+the domains: Pﬁzer participants were more reluctant than their     agent and for me personally to review every LOC” (MS155).
+Microsoft peers to adopt AI for routine communication, and            Atomic did not necessarily mean small; participants saw it
+even more so for AI-generated training material (pooled across     as context-dependent, provided the output stayed reviewable:
+“as long as you review the full PR sometimes it’s ok for it to part, because they show where the work sets the boundary.
+be big, as long as testing is proportionally big” (MS19).           (3) Processes and tools can build the guidelines into how
+   (4) When AI contributed, that its contributions be work gets done, as agent skills do, while staying inclusive of
+credited: CC6 was relevant to nearly all participants (R 95%), developers across the spectrum.
+but fewer wanted to adopt it in their own work (A 81%), and            These three layers can pull against each other where a
+participants mostly disagreed about what annotation would do. developer’s agency and their team’s AI maturity diverge: a
+Those who wanted to adopt it would mark AI’s contributions team where AI is not yet part of the work can hold back
+where reviewers see them, noting that “knowing that code a developer ready to adopt a guideline, and a fast-moving
+is AI-generated is critical to reviewing it more effectively” team can set norms that some members are not ready, or do
+(MS185).                                                            not want, to follow. Because each guideline is deliberately
+   Those who were reluctant reasoned about ownership, want- general, teams should treat it as a default to conﬁrm or revise
+ing developers to stay accountable for their code: “The more for their context, leaving room for members who draw the
+we annotate ‘this code was written by AI’ the more we line elsewhere. Responsibly integrating AI, then, becomes a
+degrade the ownership. . . we degrade accountability (not my decision teams make together about where AI belongs in their
+fault, AI wrote that!). . . ” (MS115). Similarly, participants with work and where it does not.
+more AI experience were less willing to adopt it (78% vs. B. Guidelines as agent skills
+86%). As MS19 put it: “. . . especially at this stage where it’s       Developers increasingly steer AI agents through context
+assumed 90% of what people do is AI generated. . . I annotate ﬁles and skills, i.e., instructions checked into a repository
+my personal contributions instead”. PF3 added that reviewers that an agent loads when it starts or when a task calls for
+should instead “judge all content on its merit”.                    them [54, 55]. A skill encodes how a developer wants work
+                                                                    done, and our guidelines have the potential to become such
+                          V. D ISCUSSION
+                                                                    skills.
+   Our aim was for the guidelines to capture what endures              For example, DV4 could become a skill that loads
+in developers’ work as AI tools evolve. They held up a year whenever an agent changes code, splits the work into
+after we synthesized them, a considerable period given how increments a developer can follow, and stops before applying
+rapidly AI tools are advancing, and with developers beyond a consequential change. Similarly, QR4 could become a
+the company and domain they came from, suggesting that they review skill that hands the agent’s output to a different
+capture durable aspects of developers’ work, although we do model, so that no agent certiﬁes its own work (Sec. IV-C).
+not claim that they apply universally (recall Sec. III-C).          Cross-cutting guidelines that apply to every task could be
+A. Guidelines as a shared vocabulary for engineering teams encoded as persistent agent instructions: e.g., asking before
+                                                                    acting on missing context (CC1), backing its claims with
+   Participants’ endorsements were not uniform, so no one set evidence (CC4), and so on. The demands would move into
+of guidelines is likely to ﬁt every developer. We advocate the agent, and developers could check that they were met.
+accommodating this non-uniformity in developers’ views on              Because skills can also be ﬁles a team edits, the skills can
+responsibly integrating AI. Toward this end, our guidelines carry the choices of Sec. V-A. Within a team, one developer’s
+provide developers who hold differing views a shared vo- setup might let the agent send routine build notiﬁcations, while
+cabulary to discuss them, much as the cognitive dimensions another’s routes every message to them as a draft (MW2). As
+framework gave designers shared terms for designing and another example, a team in a regulated domain might apply
+discussing notations [53].                                          its sign-off skill (IO4) to every production change, whereas
+   For instance, one developer might hand AI their routine another team might let agents apply routine conﬁguration
+status updates, while a teammate might want to personally ﬁxes but escalate the others. Following research on scrutable
+create their updates. As we saw in MW2, both can use the personalization [56], these choices should remain transparent
+same terms: “routine communication and collaboration logis- and steerable.
+tics”, which AI may automate, and “consequential stakeholder-          Overall, we see the success of the guidelines as agent skills
+facing messages”, which AI may not send without approval, as dependent on a shared vocabulary and on supporting devel-
+with each individual deciding which ones are consequential.         opers diverse needs. Future research should examine whether
+   We see this vocabulary as useful across three layers. (1) In- this is the case and whether agents that follow these guidelines
+dividuals can compare the guidelines with their own practice improve developers work outcomes and experiences.
+to see which they already follow, which they would adopt
+if their work called for it, and which they resist, and why.                              VI. C ONCLUSION
+(2) Teams and organizations can use them to set norms that             Software developers have been asking how to integrate
+ﬁt their AI maturity and their domain; engineering leaders AI into their daily work responsibly, and most have had to
+can bring them to a retrospective or a planning session as work out the answer on their own. From the accounts of 860
+conversation starters, asking the same questions of the team, developers who had begun working it out, we synthesized 35
+including where its members disagree. The disagreements developer-facing guidelines. Participants described delegating
+among individuals and within teams are often the most useful to AI the work they could effectively verify and using it
+to grow their craft, while holding on to their judgment and                     [13] D. Russo, “Navigating the complexity of generative AI adoption in
+the decisions they are accountable for. For relationship-centric                     software engineering,” ACM Transactions on Software Engineering and
+                                                                                     Methodology, vol. 33, no. 5, pp. 135:1–135:50, Jun. 2024.
+work, they drew the line differently, varying with their do-                    [14] S. Lambiase, G. Catolino, F. Palomba, F. Ferrucci, and D. Russo,
+main, SE, and AI experience. A year later—a considerable                             “Exploring individual factors in the adoption of LLMs for speciﬁc
+time given AI tools’ rapid advancement—we validated the                              software engineering purposes,” Information and Software Technology,
+                                                                                     vol. 200, p. 108295, 2026.
+guidelines derived from Phase 1 with an independent sample of                   [15] R. Choudhuri, B. Trinkenreich, R. Pandita, E. Kalliamvakou, I. Stein-
+developers, who strongly endorsed them, suggesting that these                        macher, M. Gerosa, C. Sanchez, and A. Sarma, “What guides our
+guidelines captured durable aspects of developers’ work.                             choices? Modeling developers’ trust and behavioral intentions towards
+                                                                                     GenAI,” in Proceedings of the IEEE/ACM 47th International Conference
+   We invite teams to try these guidelines as a shared vocabu-                       on Software Engineering, ser. ICSE ’25. IEEE, 2025, pp. 1691–1703.
+lary: to choose those that ﬁt their work and voice, settle openly               [16] R. Choudhuri, B. Trinkenreich, R. Pandita, E. Kalliamvakou, I. Stein-
+where members differ, and externalize these choices so that                          macher, M. Gerosa, C. A. Sanchez, and A. Sarma, “What needs atten-
+                                                                                     tion? Prioritizing drivers of developers’ trust and adoption of Generative
+peers and their AI agents can learn from them.                                       AI,” ACM Transactions on Software Engineering and Methodology, Aug.
+Data Availability. Our supplemental package is available                             2026.
+                                                                                [17] X. Hou, Y. Zhao, Y. Liu, Z. Yang, K. Wang, L. Li, X. Luo, D. Lo,
+at [45], and an interactive dashboard with an agent-skill gen-                       J. Grundy, and H. Wang, “Large language models for software engi-
+erator is available at aka.ms/ai-where-it-matters/guidelines.                        neering: A systematic literature review,” ACM Transactions on Software
+                                                                                     Engineering and Methodology, vol. 33, no. 8, pp. 220:1–220:79, Nov.
+                              R EFERENCES                                            2024.
+ [1] D. DeBellis, K. Storer, N. Harvey, M. Beane, R. Edwards, E. Fraser,        [18] A. Fan, B. Gokkaya, M. Harman, M. Lyubarskiy, S. Sengupta, S. Yoo,
+     B. Good, E. Kalliamvakou, G. Kim, E. Maxwell, S. D’Angelo, S. Inman,            and J. M. Zhang, “Large language models for software engineering:
+     A. Murillo, and D. Villalba, “DORA 2025 state of AI-assisted software           Survey and open problems,” in Proceedings of IEEE/ACM International
+     development report,” Google, Tech. Rep., 2025. [Online]. Available:             Conference on Software Engineering: Future of Software Engineering
+     https://dora.dev/dora-report-2025/                                              (ICSE-FoSE), 2023, pp. 31–53.
+ [2] C. Miller, R. Choudhuri, M. Ulloa, S. Haniyur, R. DeLine, M.-A. Storey,    [19] S. Peng, E. Kalliamvakou, P. Cihon, and M. Demirer, “The impact of
+     E. Murphy-Hill, C. Bird, and J. L. Butler, ““Maybe we need some more            AI on developer productivity: Evidence from GitHub Copilot,” arXiv
+     examples:” Individual and team drivers of developer GenAI tool use,” in         preprint arXiv:2302.06590, 2023.
+     Proceedings of the 2026 IEEE/ACM 48th International Conference on          [20] A. Ziegler, E. Kalliamvakou, X. A. Li, A. Rice, D. Rifkin, S. Simister,
+     Software Engineering, ser. ICSE ’26. New York, NY, USA: Association             G. Sittampalam, and E. Aftandilian, “Measuring GitHub Copilot’s
+     for Computing Machinery, 2026, pp. 2582–2595.                                   impact on productivity,” Communications of the ACM, vol. 67, no. 3,
+ [3] S. Baltes, M. Cheong, and C. Treude, “‘An endless stream of AI slop’:           pp. 54–63, Feb. 2024.
+     How developers discuss the burden of AI-assisted software develop-         [21] J. Butler, J. Suh, S. Haniyur, and C. Hadley, “Dear diary: A randomized
+     ment,” IEEE Software, pp. 1–8, 2026.                                            controlled trial of generative AI coding tools in the workplace,” in 2025
+ [4] M.-A. Storey, “From technical debt to cognitive and intent debt,” ACM           IEEE/ACM 47th International Conference on Software Engineering:
+     Queue, vol. 24, no. 2, 2026.                                                    Software Engineering in Practice (ICSE-SEIP). IEEE, 2025, pp. 319–
+ [5] K. Yamasaki, J. A. Joshua, T. Settewong, M. Alfadel, K. Shimari, and            329.
+     K. Matsumoto, “Who writes the docs in SE 3.0? Agent vs. human              [22] B. Johnson, C. Bird, D. Ford, N. Forsgren, and T. Zimmermann, “Make
+     documentation pull requests,” in Proceedings of the 23rd International          your tools sparkle with trust: The PICSE framework for trust in software
+     Conference on Mining Software Repositories. New York, NY, USA:                  tools,” in 2023 IEEE/ACM 45th International Conference on Software
+     Association for Computing Machinery, 2026, pp. 974–978.                         Engineering: Software Engineering in Practice (ICSE-SEIP). IEEE,
+ [6] R. Choudhuri, C. Bird, C. Badea, and A. Sarma, “To Copilot and beyond:          2023, pp. 409–419.
+     22 AI systems developers want built,” arXiv preprint arXiv:2604.07830,     [23] R. Wang, R. Cheng, D. Ford, and T. Zimmermann, “Investigating
+     2026.                                                                           and designing for trust in AI-powered code generation tools,” in
+ [7] M. Guizani, M. Subasinghage, S. Licorish, and S. Ouhbi, “At what cost?          Proceedings of the 2024 ACM Conference on Fairness, Accountability,
+     Software developers’ well-being in the age of GenAI,” in Proceedings            and Transparency, ser. FAccT ’24. New York, NY, USA: Association
+     of the 34th ACM International Conference on the Foundations of                  for Computing Machinery, 2024, pp. 1475–1493. [Online]. Available:
+     Software Engineering, ser. FSE Companion ’26. New York, NY, USA:                https://doi.org/10.1145/3630106.3658984
+     Association for Computing Machinery, 2026, pp. 1326–1330.                  [24] R. Cheng, R. Wang, T. Zimmermann, and D. Ford, “‘It would work
+ [8] J. Becker, N. Rush, E. Barnes, and D. Rein, “Measuring the impact               for me too’: How online communities shape software developers’ trust
+     of early-2025 AI on experienced open-source developer productivity,”            in AI-powered code generation tools,” ACM Transactions on Interactive
+     arXiv preprint arXiv:2507.09089, 2025.                                          Intelligent Systems, vol. 14, no. 2, pp. 11:1–11:39, May 2024.
+ [9] S. Amershi, D. Weld, M. Vorvoreanu, A. Fourney, B. Nushi, P. Collisson,    [25] S. Xiao, J. Witschey, and E. Murphy-Hill, “Social inﬂuences on secure
+     J. Suh, S. Iqbal, P. N. Bennett, K. Inkpen, J. Teevan, R. Kikin-Gil, and        development tool adoption: Why security tools spread,” in Proceedings
+     E. Horvitz, “Guidelines for human-AI interaction,” in Proceedings of            of the 17th ACM Conference on Computer Supported Cooperative Work
+     the 2019 CHI Conference on Human Factors in Computing Systems, ser.             & Social Computing, ser. CSCW ’14. New York, NY, USA: Association
+     CHI ’19. New York, NY, USA: Association for Computing Machinery,                for Computing Machinery, 2014, pp. 1095–1106.
+     2019, pp. 1–13.                                                            [26] J. Witschey, O. Zielinska, A. Welk, E. Murphy-Hill, C. Mayhorn, and
+[10] J. D. Weisz, J. He, M. Muller, G. Hoefer, R. Miles, and W. Geyer,               T. Zimmermann, “Quantifying developers’ adoption of security tools,” in
+     “Design principles for generative AI applications,” in Proceedings of           Proceedings of the 2015 10th Joint Meeting on Foundations of Software
+     the 2024 CHI Conference on Human Factors in Computing Systems, ser.             Engineering, ser. ESEC/FSE 2015. New York, NY, USA: Association
+     CHI ’24. New York, NY, USA: Association for Computing Machinery,                for Computing Machinery, 2015, pp. 260–271.
+     2024, pp. 378:1–378:22.                                                    [27] M. Khemka and B. Houck, “Toward effective AI support for developers:
+[11] J. T. Liang, C. Yang, and B. A. Myers, “A large-scale survey on                 A survey of desires and concerns,” Communications of the ACM, vol. 67,
+     the usability of AI programming assistants: Successes and challenges,”          no. 11, pp. 42–49, Oct. 2024.
+     in Proceedings of the IEEE/ACM 46th International Conference on            [28] S. Kumar, D. Goel, T. Zimmermann, B. Houck, B. Ashok, and C. Bansal,
+     Software Engineering, ser. ICSE ’24. New York, NY, USA: Association             “Time warp: The gap between developers’ ideal vs actual workweeks in
+     for Computing Machinery, 2024, pp. 52:1–52:13.                                  an AI-driven era,” in 2025 IEEE/ACM 47th International Conference on
+[12] C. Bird, D. Ford, T. Zimmermann, N. Forsgren, E. Kalliamvakou,                  Software Engineering: Software Engineering in Practice (ICSE-SEIP),
+     T. Lowdermilk, and I. Gazit, “Taking ﬂight with Copilot: Early in-              2025, pp. 12–22.
+     sights and opportunities of AI-powered pair-programming tools,” Queue,     [29] G. V. Pereira, V. Jackson, R. Prikladnicki, A. van der Hoek, L. Fortes,
+     vol. 20, no. 6, pp. 35–57, 2022.                                                C. Araújo, A. Coelho, L. Chelli, and D. Ramos, “Exploring GenAI
+     in software development: Insights from a case study in a large Brazil-       [50] J. Wei, X. Wang, D. Schuurmans, M. Bosma, B. Ichter, F. Xia, E. Chi,
+     ian company,” in 2025 IEEE/ACM 47th International Conference on                   Q. V. Le, and D. Zhou, “Chain-of-thought prompting elicits reasoning in
+     Software Engineering: Software Engineering in Practice (ICSE-SEIP).               large language models,” in Advances in Neural Information Processing
+     IEEE, 2025, pp. 330–341.                                                          Systems, vol. 35. Curran Associates, Inc., 2022, pp. 24 824–24 837.
+[30] R. Choudhuri, C. Badea, C. Bird, J. L. Butler, R. DeLine, and                [51] K. Krippendorff, Content Analysis: An Introduction to Its Methodology,
+     B. Houck, “AI where it matters: Where, why, and how developers                    4th ed. Thousand Oaks, CA: Sage Publications, 2018.
+     want AI support in daily work,” in Proceedings of the IEEE/ACM               [52] M. Isaac and E. Grifﬁth, “The big bang: A.I. has created a
+     48th International Conference on Software Engineering: Software                   code overload,” New York Times, April 2026. [Online]. Available:
+     Engineering in Practice, ser. ICSE-SEIP ’26. New York, NY, USA:                   https://www.nytimes.com/2026/04/06/technology/ai-code-overload.html
+     Association for Computing Machinery, 2026, pp. 428–439. [Online].            [53] T. R. G. Green and A. F. Blackwell, “Cognitive dimensions of informa-
+     Available: https://doi.org/10.1145/3786583.3786885                                tion artefacts: A tutorial,” Tutorial at the BCS HCI Conference, version
+[31] R. Choudhuri, C. Bird, C. Badea, M. Gerosa, and A. Sarma, “You shall              1.2, 1998.
+     not pass! Where and why developers draw the line on AI autonomy,”            [54] W. Chatlatanagulchai, H. Li, Y. Kashiwa, B. Reid, K. Thonglek, P. Lee-
+     arXiv preprint arXiv:2607.00533, 2026.                                            laprute, A. Rungsawang, B. Manaskasemsak, B. Adams, A. E. Hassan,
+[32] Q. V. Liao and S. S. Sundar, “Designing for responsible trust in AI sys-          and H. Iida, “Agent READMEs: An empirical study of context ﬁles
+     tems: A communication perspective,” in Proceedings of the 2022 ACM                for agentic coding,” ACM Transactions on Software Engineering and
+     Conference on Fairness, Accountability, and Transparency, ser. FAccT              Methodology, Sep. 2026.
+     ’22. New York, NY, USA: Association for Computing Machinery, 2022,           [55] M. Galster, S. Mohsenimoﬁdi, J. L. Lulla, M. A. Abubakar, C. Treude,
+     pp. 1257–1268.                                                                    and S. Baltes, “Conﬁguring agentic AI coding tools: An exploratory
+[33] Google PAIR, “People + AI guidebook,” https://pair.withgoogle.com/                study,” in Proceedings of the 3rd ACM International Conference on AI-
+     guidebook/, 2019, accessed August 11, 2025.                                       Powered Software, ser. AIware ’26. New York, NY, USA: Association
+[34] Google, “Our AI principles,” https://ai.google/principles/, 2025, accessed        for Computing Machinery, 2026, pp. 11–20.
+     August 11, 2025.                                                             [56] J. Kay and B. Kummerfeld, “Creating personalized systems that people
+[35] Microsoft Corporation, “Responsible AI principles and approach,” https:           can scrutinize and control: Drivers, principles and experience,” ACM
+     //www.microsoft.com/en-us/ai/principles-and-approach, 2025, accessed              Transactions on Interactive Intelligent Systems, vol. 2, no. 4, pp. 24:1–
+     August 11, 2025.                                                                  24:42, 2013.
+[36] Q. Lu, L. Zhu, X. Xu, J. Whittle, D. Zowghi, and A. Jacquet, “Re-
+     sponsible AI pattern catalogue: A collection of best practices for AI
+     governance and engineering,” ACM Computing Surveys, vol. 56, no. 7,
+     pp. 173:1–173:35, Apr. 2024.
+[37] S. Wagner, M. Muñoz Barón, D. Falessi, and S. Baltes, “Towards
+     evaluation guidelines for empirical studies involving LLMs,” in 2025
+     IEEE/ACM International Workshop on Methodological Issues with Em-
+     pirical Studies in Software Engineering (WSESE), 2025, pp. 24–27.
+[38] High-Level Expert Group on Artiﬁcial Intelligence, “Ethics guidelines
+     for trustworthy AI,” European Commission, Brussels, Belgium, Apr.
+     2019.
+[39] T. Punter, M. Ciolkowski, B. Freimut, and I. John, “Conducting on-
+     line surveys in software engineering,” in Proceedings of the 2003
+     International Symposium on Empirical Software Engineering (ISESE),
+     2003, pp. 80–88.
+[40] M.-A. Storey, T. Zimmermann, C. Bird, J. Czerwonka, B. Murphy,
+     and E. Kalliamvakou, “Towards a theory of software developer job
+     satisfaction and perceived productivity,” IEEE Transactions on Software
+     Engineering, vol. 47, no. 10, pp. 2125–2142, 2019.
+[41] V. Braun and V. Clarke, “Using thematic analysis in psychology,”
+     Qualitative Research in Psychology, vol. 3, no. 2, pp. 77–101, 2006.
+[42] V. Braun and V. Clarke, “Conceptual and design thinking for thematic
+     analysis,” Qualitative Psychology, vol. 9, no. 1, pp. 3–26, 2022.
+[43] J. W. Creswell and C. N. Poth, Qualitative Inquiry and Research Design:
+     Choosing Among Five Approaches, 4th ed. Thousand Oaks, CA: SAGE
+     Publications, 2018.
+[44] N. McDonald, S. Schoenebeck, and A. Forte, “Reliability and inter-
+     rater reliability in qualitative research: Norms and guidelines for CSCW
+     and HCI practice,” Proceedings of the ACM on Human-Computer
+     Interaction, vol. 3, no. CSCW, pp. 72:1–72:23, Nov. 2019.
+[45] R. Choudhuri, F. A. Moussaoui, C. Badea, C. Bird, J. L. Butler,
+     B. Houck, M. Burnett, and A. Sarma, “Supplemental material for “What
+     Should I Do?” Guidelines for Responsibly Integrating AI in Software
+     Engineering,” Zenodo, https://doi.org/10.5281/zenodo.23555180, 2026.
+[46] S. E. Stemler, “A comparison of consensus, consistency, and measure-
+     ment approaches to estimating interrater reliability,” Practical Assess-
+     ment, Research, and Evaluation, vol. 9, no. 4, pp. 1–19, 2004.
+[47] V. Braun and V. Clarke, “Reﬂecting on reﬂexive thematic analysis,”
+     Qualitative Research in Sport, Exercise and Health, vol. 11, no. 4, pp.
+     589–597, 2019. [Online]. Available: https://doi.org/10.1080/2159676X.
+     2019.1628806
+[48] R. H. Tai, L. R. Bentley, X. Xia, J. M. Sitt, S. C. Fankhauser, A. M.
+     Chicas-Mosier, and B. G. Monteith, “An examination of the use of large
+     language models to aid analysis of textual data,” International Journal
+     of Qualitative Methods, vol. 23, pp. 1–14, 2024.
+[49] S. Wu, X. Li, Y. Feng, Y. Li, Z. Wang, and R. Wang, “Council Mode:
+     A heterogeneous multi-agent consensus framework for reducing LLM
+     hallucination and bias,” arXiv preprint arXiv:2604.02923v4, 2026.
+
